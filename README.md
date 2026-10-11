@@ -59,19 +59,18 @@ Requests always send `Origin: https://music.apple.com`, which the token requires
 
 ## Hosts
 
-Apple runs the same API on several hosts. The client uses `amp-api.music.apple.com` unless told otherwise:
+Requests go to `amp-api.music.apple.com`. Pass `edge: true` to send them to `amp-api-edge.music.apple.com` instead, the edge-cached copy the web player uses for search:
 
 ```ts
-createClient({ developerToken, host: "amp-api-edge.music.apple.com" });
-createClient({ developerToken, host: { search: "amp-api-edge.music.apple.com" } });
+createClient({ developerToken, edge: true });
 ```
 
-A string sets the host for every request. An object routes by area, like the web player's `ampMusicAPIDomains` bag: `default`, `search` (`/v1/catalog/{storefront}/search...`) and `editorial` (`/v1/editorial/...`). Unset areas fall back to `default`. Endpoints that live on other services, such as playback and purchase, keep their own host.
+Edge search results have no `next` link, so search pagination stops at the first page. Endpoints that live on other services, such as playback and purchase, keep their own host.
+
+Apple runs a few other API hosts that the client does not target:
 
 | Host | What it is |
 | --- | --- |
-| `amp-api.music.apple.com` | The main API. Everything works here. |
-| `amp-api-edge.music.apple.com` | Edge-cached copy of the same API. The web player sends search, hints and the search landing page here. Search results have no `next` link, so search pagination stops at the first page. |
 | `amp-api-preview.music.apple.com` | Pre-release deployment. Not reachable from the public internet. |
 | `amp-api-conversation.music.apple.com` | Conversational search service. Rejects the web player token with an empty 401. |
 | `classical-api.music.apple.com` | Separate, versioned API for Apple Music Classical. The Classical app itself still reads catalog data from `amp-api`. |

@@ -16,23 +16,39 @@ album.tracks.map((track) => track.name);
 
 Everything in Apple Music is a **resource**: an object with an `id`, a `type` (`albums`, `songs`, `library-playlists`, ...) and attributes such as `name` or `artwork`.
 
-Resources point at each other through **relationships**. An album has `artists` and `tracks`, a song has `albums`. By default the API only sends a reference (`{ id, type }`) for most relationships. Ask for the full objects with `include`:
+Resources point at each other through **relationships**. An album has `artists` and `tracks`, a song has `albums`. Some relationships arrive as bare references (`{ id, type }`), some arrive as full objects without asking (an album's `tracks`), and the rest are left out entirely. Ask for full objects with `include`:
 
 ```ts
 const song = await am.songs.get("1752214910", { include: ["albums", "artists"] });
 song.albums[0].name;
 ```
 
-The types follow your options. Without `include: ["artists"]`, `album.artists[0].name` is a compile error, because the API would not have sent it.
-
 **Views** are editorial shelves attached to a resource, like "More by Sabrina Carpenter":
 
 ```ts
 const album = await am.albums.get("1752214909", { views: ["more-by-artist"] });
-album.views?.moreByArtist?.items;
+album.views.moreByArtist.items[0].name;
 ```
 
-`extend` asks for optional attributes (`editorialVideo`, `offers`, ...). `fields` trims the response down to the attributes you name, and the type narrows with it.
+`extend` asks for attributes the API leaves out by default (`offers`, `editorialArtwork`, ...). `fields` trims the response down to the attributes you name.
+
+## What the types promise
+
+Every option changes the result type to match what the API sends back:
+
+| You pass | The result type |
+| --- | --- |
+| nothing | Attributes Apple always sends are required, ones it sometimes omits are optional. Relationships the API sends as references are optional `{ id, type }[]`; the rest do not exist on the type. |
+| `include: ["genres"]` | `genres` becomes a required array of full objects. A few relationships, such as `library`, can be absent even when included and stay optional. |
+| `extend: ["offers"]` | `offers` appears. Without it, `album.offers` is a compile error. |
+| `fields: ["name"]` | Only `name` remains. Extended attributes need to be listed in `fields` too, as the API drops them otherwise. |
+| `views: ["top-songs"]` | `views.topSongs` is required and its items are typed as songs. Views you did not ask for are not on the type. |
+
+Invalid combinations do not compile: `extend: ["artwork"]` (artwork is always sent), `include: ["playlists"]` on a library song (no such relationship), or `include: ["tracks"]` on `library.albums.list()` (Apple only allows it when fetching one album).
+
+These rules come from sampling thousands of live responses, not from Apple's documentation. `bun run audit` reruns the sampling and prints how often each attribute, extend and relationship appears, so the types can be rechecked when Apple changes the API.
+
+Included relationships are capped by Apple: a playlist's `tracks` stops at 100 and an artist's `albums` at 25. Use `related()` to read the full list.
 
 Kebab-case names from the API become camelCase on hydrated objects: `record-labels` is `recordLabels`, `more-by-artist` is `moreByArtist`.
 
@@ -161,4 +177,8 @@ Failures throw `AmpError`, carrying `status`, Apple's `code` (`40400`, `40005`, 
 bun run generate
 ```
 
-Resource attribute types in `src/types.ts` are written by hand from captured responses, because the spec does not describe response bodies per type.
+Resource types in `src/types.ts` are written by hand, because the spec does not describe response bodies per type. `bun run audit` samples live responses with `AMP_DEVELOPER_TOKEN` (and `AMP_USER_TOKEN`) from the environment and prints what Apple actually returns, which is the reference for those types:
+
+```sh
+bun run audit albums songs
+```

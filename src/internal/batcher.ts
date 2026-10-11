@@ -10,6 +10,13 @@ interface Batch {
   ids: Set<string>;
 }
 
+const idLimits: Record<string, number> = {
+  artists: 50,
+  genres: 300,
+  playlists: 50,
+  songs: 300,
+};
+
 export const createBatcher = (send: Send) => {
   const batches = new Map<string, Batch>();
   const known = new Map<string, RawDocument>();
@@ -21,9 +28,10 @@ export const createBatcher = (send: Send) => {
     ids: string[]
   ) => {
     const documents = new Map<string, RawDocument>();
+    const size = idLimits[type] ?? 100;
     const chunks = Array.from(
-      { length: Math.ceil(ids.length / 100) },
-      (_, index) => ids.slice(index * 100, index * 100 + 100)
+      { length: Math.ceil(ids.length / size) },
+      (_, index) => ids.slice(index * size, index * size + size)
     );
     await Promise.all(
       chunks.map(async (chunk) => {

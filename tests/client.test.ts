@@ -67,6 +67,40 @@ describe("catalog gets", () => {
     );
   });
 
+  test("batches respect each type's id limit", async () => {
+    const api = fakeApi((url) => ({
+      body: {
+        data: [...url.searchParams.values()]
+          .filter((value) => value.includes(","))
+          .flatMap((list) => list.split(","))
+          .map((id) => ({
+            id,
+            type: url.searchParams.has("ids[songs]") ? "songs" : "playlists",
+          })),
+      },
+    }));
+    const ids = Array.from({ length: 301 }, (_, index) => String(index));
+    await Promise.all([
+      api.client.songs.getMany(ids),
+      api.client.playlists.getMany(ids.slice(0, 120)),
+    ]);
+    const sizes = api.urls.map((url) => [
+      url.searchParams.has("ids[songs]") ? "songs" : "playlists",
+      (
+        url.searchParams.get("ids[songs]") ??
+        url.searchParams.get("ids[playlists]") ??
+        ""
+      ).split(",").length,
+    ]);
+    expect(sizes.sort()).toEqual([
+      ["playlists", 20],
+      ["playlists", 50],
+      ["playlists", 50],
+      ["songs", 1],
+      ["songs", 300],
+    ]);
+  });
+
   test("a renamed id resolves through meta.formerIds", async () => {
     const api = fakeApi(() => ({
       body: {

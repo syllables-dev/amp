@@ -1,6 +1,6 @@
 import { expect, expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
-import type { EditorialArtwork, Offer } from "@/types";
+import type { EditorialArtwork, Offer, Ref, Resource } from "@/types";
 
 const am = createClient({
   developerToken: "token",
@@ -41,6 +41,43 @@ test("invalid extends do not compile", () => {
     am.albums.get("1", { extend: ["artwork"] });
     // @ts-expect-error lyricsExcerpt only exists on songs
     am.albums.get("1", { extend: ["lyricsExcerpt"] });
+  };
+  expect(typeof check).toBe("function");
+});
+
+test("relationships follow what the API sends", () => {
+  const plain = () => am.albums.get("1");
+  const included = () => am.albums.get("1", { include: ["genres", "library"] });
+  const playlist = () => am.playlists.get("1", { include: ["curator"] });
+  type Plain = Awaited<ReturnType<typeof plain>>;
+  type Included = Awaited<ReturnType<typeof included>>;
+  type Playlist = Awaited<ReturnType<typeof playlist>>;
+  expectTypeOf<Plain>().not.toHaveProperty("genres");
+  expectTypeOf<Plain["tracks"][number]["type"]>().toEqualTypeOf<
+    "music-videos" | "songs"
+  >();
+  expectTypeOf<NonNullable<Plain["artists"]>[number]>().toEqualTypeOf<
+    Ref<"artists">
+  >();
+  expectTypeOf<Included["genres"][number]["name"]>().toEqualTypeOf<string>();
+  expectTypeOf<Included["library"]>().toEqualTypeOf<
+    Resource<"library-albums">[] | undefined
+  >();
+  expectTypeOf<Playlist["curator"][number]>().toEqualTypeOf<
+    | Ref<"apple-curators" | "artists" | "curators" | "social-profiles">
+    | Resource<"apple-curators" | "artists" | "curators" | "social-profiles">
+  >();
+  expect(true).toBe(true);
+});
+
+test("library lists reject includes that need a single fetch", () => {
+  const check = () => {
+    am.library.albums.get("1", { include: ["tracks"] });
+    am.library.albums.list({ include: ["catalog", "artists"] });
+    // @ts-expect-error tracks can only be included when fetching one album
+    am.library.albums.list({ include: ["tracks"] });
+    // @ts-expect-error library songs have no playlists relationship
+    am.library.songs.get("1", { include: ["playlists"] });
   };
   expect(typeof check).toBe("function");
 });

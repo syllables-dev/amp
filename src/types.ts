@@ -482,36 +482,90 @@ export interface LibraryPlaylistExtended extends LibraryExtended {
 
 export type NoExtend = Record<never, never>;
 
+export type NoViews = Record<never, never>;
+
+export interface AlbumViews {
+  "appears-on": "playlists";
+  "audio-extras": "stations";
+  "more-by-artist": "albums";
+  "other-versions": "albums";
+  "related-videos": "music-videos";
+  "video-extras": "uploaded-videos";
+  "you-might-also-like": "albums";
+}
+
+export interface ArtistViews {
+  "appears-on-albums": "albums";
+  "compilation-albums": "albums";
+  "featured-albums": "albums";
+  "featured-playlists": "playlists";
+  "featured-release": "albums" | "playlists";
+  "full-albums": "albums";
+  "latest-release": "albums";
+  "live-albums": "albums";
+  "more-to-hear": "stations";
+  "more-to-see": "music-movies" | "uploaded-videos";
+  playlists: "playlists";
+  "radio-shows": "apple-curators";
+  "similar-artists": "artists";
+  singles: "albums";
+  "top-music-videos": "music-videos";
+  "top-songs": "songs";
+}
+
+export interface MusicVideoViews {
+  "more-by-artist": "music-videos";
+  "more-in-genre": "music-videos";
+}
+
+export interface PlaylistViews {
+  "featured-artists": "artists";
+  "more-by-curator": "playlists";
+}
+
+export interface RecordLabelViews {
+  "latest-releases": "albums";
+  "top-releases": "albums";
+}
+
+export type NoRelationships = Record<never, never>;
+
 export interface Registry {
   albums: {
     attributes: AlbumAttributes;
+    defaults: "tracks";
+    extended: AlbumExtended;
+    optional: "library";
+    partial: never;
+    refs: "artists";
     relationships: {
       artists: "artists";
       genres: "genres";
       library: "library-albums";
       "record-labels": "record-labels";
-      tracks: "songs" | "music-videos";
+      tracks: "music-videos" | "songs";
     };
-    defaults: "tracks";
-    extended: AlbumExtended;
-    views:
-      | "appears-on"
-      | "audio-extras"
-      | "more-by-artist"
-      | "other-versions"
-      | "related-videos"
-      | "video-extras"
-      | "you-might-also-like";
+    singleOnly: never;
+    views: AlbumViews;
   };
   "apple-curators": {
     attributes: AppleCuratorAttributes;
-    relationships: { playlists: "playlists" };
     defaults: never;
     extended: CuratorExtended;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: "playlists";
+    relationships: { playlists: "playlists" };
+    singleOnly: never;
+    views: NoViews;
   };
   artists: {
     attributes: ArtistAttributes;
+    defaults: never;
+    extended: ArtistExtended;
+    optional: never;
+    partial: "station";
+    refs: "albums";
     relationships: {
       albums: "albums";
       genres: "genres";
@@ -519,112 +573,141 @@ export interface Registry {
       playlists: "playlists";
       station: "stations";
     };
-    defaults: never;
-    extended: ArtistExtended;
-    views:
-      | "appears-on-albums"
-      | "compilation-albums"
-      | "featured-albums"
-      | "featured-playlists"
-      | "full-albums"
-      | "latest-release"
-      | "live-albums"
-      | "more-to-hear"
-      | "more-to-see"
-      | "playlists"
-      | "radio-shows"
-      | "similar-artists"
-      | "singles"
-      | "top-music-videos"
-      | "top-songs";
+    singleOnly: never;
+    views: ArtistViews;
   };
   "credit-artists": {
     attributes: CreditArtistAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   curators: {
     attributes: CuratorAttributes;
-    relationships: { playlists: "playlists" };
     defaults: never;
     extended: CuratorExtended;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: "playlists";
+    relationships: { playlists: "playlists" };
+    singleOnly: never;
+    views: NoViews;
   };
   genres: {
     attributes: GenreAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   "library-albums": {
     attributes: LibraryAlbumAttributes;
+    defaults: never;
+    extended: LibraryAlbumExtended;
+    optional: never;
+    partial: "artists";
+    refs: never;
     relationships: {
       artists: "library-artists";
       catalog: "albums";
-      tracks: "library-songs" | "library-music-videos";
+      tracks: "library-music-videos" | "library-songs";
     };
-    defaults: never;
-    extended: LibraryAlbumExtended;
-    views: never;
+    singleOnly: "tracks";
+    views: NoViews;
   };
   "library-artists": {
     attributes: LibraryArtistAttributes;
-    relationships: { albums: "library-albums"; catalog: "artists" };
     defaults: never;
     extended: LibraryExtended;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: { albums: "library-albums"; catalog: "artists" };
+    singleOnly: "albums";
+    views: NoViews;
   };
   "library-music-videos": {
     attributes: LibraryMusicVideoAttributes;
+    defaults: never;
+    extended: LibraryExtended;
+    optional: never;
+    partial: never;
+    refs: never;
     relationships: {
       albums: "library-albums";
       artists: "library-artists";
       catalog: "music-videos";
     };
-    defaults: never;
-    extended: LibraryExtended;
-    views: never;
+    singleOnly: never;
+    views: NoViews;
   };
   "library-playlists": {
     attributes: LibraryPlaylistAttributes;
-    relationships: {
-      catalog: "playlists";
-      tracks: "library-songs" | "library-music-videos";
-    };
     defaults: never;
     extended: LibraryPlaylistExtended;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: {
+      catalog: "playlists";
+      tracks: "library-music-videos" | "library-songs";
+    };
+    singleOnly: "tracks";
+    views: NoViews;
   };
   "library-songs": {
     attributes: LibrarySongAttributes;
+    defaults: never;
+    extended: LibraryExtended;
+    optional: never;
+    partial: never;
+    refs: never;
     relationships: {
       albums: "library-albums";
       artists: "library-artists";
       catalog: "songs";
     };
-    defaults: never;
-    extended: LibraryExtended;
-    views: never;
+    singleOnly: never;
+    views: NoViews;
   };
   lyrics: {
     attributes: LyricsAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   "music-movies": {
     attributes: MusicMovieAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   "music-videos": {
     attributes: MusicVideoAttributes;
+    defaults: never;
+    extended: MusicVideoExtended;
+    optional: "library";
+    partial: never;
+    refs: "albums" | "artists";
     relationships: {
       albums: "albums";
       artists: "artists";
@@ -632,85 +715,121 @@ export interface Registry {
       library: "library-music-videos";
       songs: "songs";
     };
-    defaults: never;
-    extended: MusicVideoExtended;
-    views: "more-by-artist" | "more-in-genre";
+    singleOnly: never;
+    views: MusicVideoViews;
   };
   playlists: {
     attributes: PlaylistAttributes;
+    defaults: "tracks";
+    extended: PlaylistExtended;
+    optional: "library";
+    partial: "curator";
+    refs: "curator";
     relationships: {
       curator: "apple-curators" | "artists" | "curators" | "social-profiles";
       library: "library-playlists";
-      tracks: "songs" | "music-videos";
+      tracks: "music-videos" | "songs";
     };
-    defaults: "tracks";
-    extended: PlaylistExtended;
-    views: "featured-artists" | "more-by-curator";
+    singleOnly: never;
+    views: PlaylistViews;
   };
   "record-labels": {
     attributes: RecordLabelAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: "latest-releases" | "top-releases";
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: RecordLabelViews;
   };
   "role-categories": {
     attributes: CreditCategoryAttributes;
-    relationships: { "credit-artists": "credit-artists" };
     defaults: "credit-artists";
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: { "credit-artists": "credit-artists" };
+    singleOnly: never;
+    views: NoViews;
   };
   "social-profiles": {
     attributes: SocialProfileAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   songs: {
     attributes: SongAttributes;
+    defaults: never;
+    extended: SongExtended;
+    optional: "library" | "lyrics";
+    partial: never;
+    refs: "albums" | "artists";
     relationships: {
       albums: "albums";
       artists: "artists";
       composers: "artists";
+      credits: "role-categories";
       genres: "genres";
       library: "library-songs";
       lyrics: "lyrics";
       "music-videos": "music-videos";
       station: "stations";
     };
-    defaults: never;
-    extended: SongExtended;
-    views: never;
+    singleOnly: never;
+    views: NoViews;
   };
   stations: {
     attributes: StationAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: StationExtended;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   storefronts: {
     attributes: StorefrontAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   "syllable-lyrics": {
     attributes: SyllableLyricsAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
   "uploaded-videos": {
     attributes: UploadedVideoAttributes;
-    relationships: Record<never, never>;
     defaults: never;
     extended: NoExtend;
-    views: never;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
   };
 }
 
@@ -764,7 +883,12 @@ export type Target<
   R extends Relationship<T>,
 > = Registry[T]["relationships"][R] & ResourceType;
 
-export type View<T extends ResourceType> = Registry[T]["views"];
+export type View<T extends ResourceType> = keyof Registry[T]["views"] & string;
+
+export type ViewTarget<
+  T extends ResourceType,
+  V extends View<T>,
+> = Registry[T]["views"][V] & ResourceType;
 
 export type Extended<T extends ResourceType> = Registry[T]["extended"];
 
@@ -776,6 +900,24 @@ export type AttributeName<T extends ResourceType> =
 
 export type Defaults<T extends ResourceType> = Registry[T]["defaults"] &
   Relationship<T>;
+
+export type Refs<T extends ResourceType> = Registry[T]["refs"] &
+  Relationship<T>;
+
+export type SingleOnly<T extends ResourceType> = Registry[T]["singleOnly"] &
+  Relationship<T>;
+
+export type Listable<T extends ResourceType> = Exclude<
+  Relationship<T>,
+  SingleOnly<T>
+>;
+
+type Included<
+  T extends ResourceType,
+  R extends Relationship<T>,
+> = R extends Registry[T]["partial"]
+  ? (Ref<Target<T, R>> | Resource<Target<T, R>>)[]
+  : Resource<Target<T, R>>[];
 
 export interface Ref<T extends ResourceType = ResourceType> {
   href?: string;
@@ -798,13 +940,17 @@ export type Resource<
 > = T extends ResourceType
   ? Ref<T> &
       Sparse<Attributes<T> & Pick<Extended<T>, Extract<E, Extend<T>>>, F> & {
-        [R in Exclude<Relationship<T>, I> as CamelCase<R>]?: Ref<
-          Target<T, R>
-        >[];
+        [R in Exclude<Refs<T>, I> as CamelCase<R>]?: Ref<Target<T, R>>[];
       } & {
-        [R in Extract<Relationship<T>, I> as CamelCase<R>]: Resource<
-          Target<T, R>
-        >[];
+        [R in Exclude<
+          Extract<Relationship<T>, I>,
+          Registry[T]["optional"]
+        > as CamelCase<R>]: Included<T, R>;
+      } & {
+        [R in Extract<
+          Extract<Relationship<T>, I>,
+          Registry[T]["optional"]
+        > as CamelCase<R>]?: Included<T, R>;
       } & {
         views?: { [V in View<T> as CamelCase<V>]?: Shelf };
         meta?: Record<string, unknown>;

@@ -29,6 +29,7 @@ import type {
   Extend,
   LibrarySearchType,
   LibraryType,
+  Listable,
   Page,
   Relationship,
   Resource,
@@ -129,10 +130,7 @@ export interface CatalogCollection<T extends CatalogType> {
 }
 
 export interface LibraryCollection<T extends LibraryType> {
-  all: <
-    const I extends Relationship<T> = never,
-    const E extends Extend<T> = never,
-  >(
+  all: <const I extends Listable<T> = never, const E extends Extend<T> = never>(
     options?: LibraryListOptions<T, I, E>
   ) => AsyncGenerator<Resource<T, I, PropertyKey, E>>;
   get: <
@@ -143,7 +141,7 @@ export interface LibraryCollection<T extends LibraryType> {
     options?: LibraryOptions<T, I, E>
   ) => Promise<Resource<T, I, PropertyKey, E>>;
   list: <
-    const I extends Relationship<T> = never,
+    const I extends Listable<T> = never,
     const E extends Extend<T> = never,
   >(
     options?: LibraryListOptions<T, I, E>

@@ -246,8 +246,11 @@ describe("edge", () => {
     expect(await hostsFor()).toEqual(["amp-api.music.apple.com"]);
   });
 
-  test("edge sends every request to amp-api-edge", async () => {
-    expect(await hostsFor(true)).toEqual(["amp-api-edge.music.apple.com"]);
+  test("edge sends only catalog search to amp-api-edge", async () => {
+    expect(await hostsFor(true)).toEqual([
+      "amp-api-edge.music.apple.com",
+      "amp-api.music.apple.com",
+    ]);
   });
 });
 

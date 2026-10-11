@@ -225,6 +225,50 @@ describe("transport", () => {
   });
 });
 
+describe("hosts", () => {
+  const hostsFor = async (host: Parameters<typeof createClient>[0]["host"]) => {
+    const seen: string[] = [];
+    const client = createClient({
+      developerToken: "token",
+      fetch: ((input: string | URL | Request) => {
+        seen.push(new URL(String(input)).host);
+        return Promise.resolve(Response.json({ data: [], results: {} }));
+      }) as typeof fetch,
+      host,
+      storefront: "hk",
+    });
+    await client.search("a");
+    await client.request("GET /v1/editorial/{storefront}/groupings", {});
+    await client.songs.getMany(["1"]).catch(() => undefined);
+    return seen;
+  };
+
+  test("amp-api serves everything by default", async () => {
+    expect(new Set(await hostsFor(undefined))).toEqual(
+      new Set(["amp-api.music.apple.com"])
+    );
+  });
+
+  test("a bare host replaces the default for every request", async () => {
+    expect(new Set(await hostsFor("amp-api-edge.music.apple.com"))).toEqual(
+      new Set(["amp-api-edge.music.apple.com"])
+    );
+  });
+
+  test("routes send search and editorial to their own hosts", async () => {
+    expect(
+      await hostsFor({
+        editorial: "https://editorial.example/",
+        search: "amp-api-edge.music.apple.com",
+      })
+    ).toEqual([
+      "amp-api-edge.music.apple.com",
+      "editorial.example",
+      "amp-api.music.apple.com",
+    ]);
+  });
+});
+
 describe("raw requests", () => {
   test("path params are filled and the rest becomes the query", async () => {
     const api = fakeApi(() => ({ body: { data: [] } }));

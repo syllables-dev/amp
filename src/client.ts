@@ -27,6 +27,8 @@ import type {
   CreditCategory,
   Defaults,
   Extend,
+  Host,
+  HostRoutes,
   LibrarySearchType,
   LibraryType,
   Page,
@@ -44,6 +46,7 @@ export interface ClientOptions {
   cache?: boolean;
   developerToken: Token;
   fetch?: typeof fetch;
+  host?: Host | HostRoutes;
   language?: string;
   storefront?: string;
   userToken?: Token;

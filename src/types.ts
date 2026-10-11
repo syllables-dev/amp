@@ -1,5 +1,20 @@
 export type Token = string | (() => string | Promise<string>);
 
+export type Host =
+  | "amp-api.music.apple.com"
+  | "amp-api-edge.music.apple.com"
+  | "amp-api-preview.music.apple.com"
+  | "amp-api-conversation.music.apple.com"
+  | "classical-api.music.apple.com"
+  | "library-sync.music.apple.com"
+  | (string & {});
+
+export interface HostRoutes {
+  default?: Host;
+  editorial?: Host;
+  search?: Host;
+}
+
 export type ContentRating = "clean" | "explicit";
 
 export type AudioTrait =

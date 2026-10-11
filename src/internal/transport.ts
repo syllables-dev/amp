@@ -1,6 +1,6 @@
 import { hosts, webPlayer } from "@/config";
 import { AmpError, type ApiError } from "@/errors";
-import type { Token } from "@/types";
+import type { Host, HostRoutes, Token } from "@/types";
 
 export type QueryValue =
   | string
@@ -54,6 +54,7 @@ export interface TransportOptions {
   cache?: boolean;
   developerToken: Token;
   fetch?: typeof fetch;
+  host?: Host | HostRoutes;
   userToken?: Token;
 }
 
@@ -71,6 +72,27 @@ const serialize = (query: Query = {}) => {
     params.set(key, Array.isArray(value) ? value.join(",") : String(value));
   }
   return params.toString();
+};
+
+const toOrigin = (host: Host | undefined) => {
+  if (!host) {
+    return hosts.api;
+  }
+  return new URL(host.includes("://") ? host : `https://${host}`).origin;
+};
+
+const createRouter = (host: Host | HostRoutes | undefined) => {
+  const routes = typeof host === "object" ? host : { default: host };
+  const fallback = toOrigin(routes.default);
+  const search = routes.search ? toOrigin(routes.search) : fallback;
+  const editorial = routes.editorial ? toOrigin(routes.editorial) : fallback;
+  return (path: string) => {
+    const [, version, area, , section] = path.split("/");
+    if (version === "v1" && area === "catalog" && section === "search") {
+      return search;
+    }
+    return version === "v1" && area === "editorial" ? editorial : fallback;
+  };
 };
 
 const readToken = (token?: Token) =>
@@ -94,6 +116,7 @@ export const createTransport = (options: TransportOptions): Send => {
   const cache = new Map<string, { expires: number; document: unknown }>();
   const inflight = new Map<string, Promise<unknown>>();
   const call = options.fetch ?? fetch;
+  const route = createRouter(options.host);
 
   const authorize = async (request: Request) => {
     const [developerToken, userToken] = await Promise.all([
@@ -147,7 +170,7 @@ export const createTransport = (options: TransportOptions): Send => {
 
   return <D extends RawDocument = RawDocument>(request: Request) => {
     const search = serialize(request.query);
-    const url = `${request.host ?? hosts.api}${request.path}${search ? `?${search}` : ""}`;
+    const url = `${request.host ?? route(request.path)}${request.path}${search ? `?${search}` : ""}`;
     if (request.method !== undefined && request.method !== "GET") {
       return load(url, request) as Promise<D>;
     }

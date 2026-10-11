@@ -39,6 +39,8 @@ import type {
   Target,
   Token,
   View,
+  ViewTarget,
+  WithViews,
 } from "@/types";
 
 export interface ClientOptions {
@@ -64,11 +66,12 @@ export interface GetOptions<
   I extends Relationship<T>,
   F extends AttributeName<T>,
   E extends Extend<T>,
+  V extends View<T>,
 > extends Scope {
   extend?: readonly E[];
   fields?: readonly F[];
   include?: readonly I[];
-  views?: readonly View<T>[];
+  views?: readonly V[];
 }
 
 export interface LibraryOptions<
@@ -105,28 +108,30 @@ export interface CatalogCollection<T extends CatalogType> {
     const I extends Relationship<T> = never,
     const F extends AttributeName<T> = AttributeName<T>,
     const E extends Extend<T> = never,
+    const V extends View<T> = never,
   >(
     id: string,
-    options?: GetOptions<T, I, F, E>
-  ) => Promise<Resource<T, I | Defaults<T>, F, E>>;
+    options?: GetOptions<T, I, F, E, V>
+  ) => Promise<Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>>;
   getMany: <
     const I extends Relationship<T> = never,
     const F extends AttributeName<T> = AttributeName<T>,
     const E extends Extend<T> = never,
+    const V extends View<T> = never,
   >(
     ids: readonly string[],
-    options?: GetOptions<T, I, F, E>
-  ) => Promise<Resource<T, I | Defaults<T>, F, E>[]>;
+    options?: GetOptions<T, I, F, E, V>
+  ) => Promise<(Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>)[]>;
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
     options?: PageOptions
   ) => Promise<Page<Resource<Target<T, R>>>>;
-  view: (
+  view: <V extends View<T>>(
     id: string,
-    view: View<T>,
+    view: V,
     options?: PageOptions
-  ) => Promise<Page<AnyResource>>;
+  ) => Promise<Page<Resource<ViewTarget<T, V>>>>;
 }
 
 export interface LibraryCollection<T extends LibraryType> {
@@ -274,7 +279,13 @@ export const createClient = (options: ClientOptions) => {
 
   const catalog = <T extends CatalogType>(type: T): CatalogCollection<T> => {
     const query = (
-      scope: GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>>
+      scope: GetOptions<
+        T,
+        Relationship<T>,
+        AttributeName<T>,
+        Extend<T>,
+        View<T>
+      >
     ): Query => ({
       extend: scope.extend,
       fields: scope.fields?.map(String),
@@ -284,7 +295,13 @@ export const createClient = (options: ClientOptions) => {
     });
     const fetchOne = async (
       id: string,
-      scope: GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>>,
+      scope: GetOptions<
+        T,
+        Relationship<T>,
+        AttributeName<T>,
+        Extend<T>,
+        View<T>
+      >,
       missing: "throw" | "skip"
     ) => {
       const storefront = await resolveStorefront(scope);

@@ -81,3 +81,23 @@ test("library lists reject includes that need a single fetch", () => {
   };
   expect(typeof check).toBe("function");
 });
+
+test("requested views are present and typed by view", () => {
+  const withViews = () =>
+    am.artists.get("1", { views: ["top-songs", "more-to-see"] });
+  const plain = () => am.artists.get("1");
+  const page = () => am.artists.view("1", "similar-artists");
+  type WithViews = Awaited<ReturnType<typeof withViews>>;
+  type Plain = Awaited<ReturnType<typeof plain>>;
+  type ViewPage = Awaited<ReturnType<typeof page>>;
+  expectTypeOf<
+    WithViews["views"]["topSongs"]["items"][number]["type"]
+  >().toEqualTypeOf<"songs">();
+  expectTypeOf<
+    WithViews["views"]["moreToSee"]["items"][number]["type"]
+  >().toEqualTypeOf<"music-movies" | "uploaded-videos">();
+  expectTypeOf<WithViews["views"]>().not.toHaveProperty("singles");
+  expectTypeOf<Plain>().not.toHaveProperty("views");
+  expectTypeOf<ViewPage["items"][number]["type"]>().toEqualTypeOf<"artists">();
+  expect(true).toBe(true);
+});

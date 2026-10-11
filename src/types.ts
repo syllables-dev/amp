@@ -925,8 +925,8 @@ export interface Ref<T extends ResourceType = ResourceType> {
   type: T;
 }
 
-export interface Shelf {
-  items: AnyResource[];
+export interface Shelf<T extends ResourceType = ResourceType> {
+  items: Resource<T>[];
   title?: string;
 }
 
@@ -952,10 +952,19 @@ export type Resource<
           Registry[T]["optional"]
         > as CamelCase<R>]?: Included<T, R>;
       } & {
-        views?: { [V in View<T> as CamelCase<V>]?: Shelf };
         meta?: Record<string, unknown>;
       }
   : never;
+
+export type WithViews<T extends ResourceType, V extends string> = [V] extends [
+  never,
+]
+  ? NoViews
+  : {
+      views: {
+        [K in Extract<V, View<T>> as CamelCase<K>]: Shelf<ViewTarget<T, K>>;
+      };
+    };
 
 export type AnyResource = Resource<ResourceType>;
 

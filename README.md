@@ -48,7 +48,9 @@ Invalid combinations do not compile: `extend: ["artwork"]` (artwork is always se
 
 These rules come from sampling thousands of live responses, not from Apple's documentation. `bun run audit` reruns the sampling and prints how often each attribute, extend and relationship appears, so the types can be rechecked when Apple changes the API.
 
-Included relationships are capped by Apple: a playlist's `tracks` stops at 100 and an artist's `albums` at 25. Use `related()` to read the full list.
+Apple cuts long relationships short: a playlist's `tracks` stops at 100 and an artist's `albums` at 25. `get` follows the remaining pages, so `playlist.tracks` holds every track. Pass `complete: false` to keep only Apple's first page.
+
+`limit` is typed with Apple's cap for each call, so `related(id, "curator", { limit: 2 })` on a playlist or `search(term, { limit: 51 })` does not compile. The caps live in `src/limits.ts`.
 
 Kebab-case names from the API become camelCase on hydrated objects: `record-labels` is `recordLabels`, `more-by-artist` is `moreByArtist`.
 
@@ -163,6 +165,7 @@ await am.request("GET /v1/catalog/{storefront}/songs/{id}", {
 - **Batching.** `get` calls made in the same tick for the same type and options become one request to `/v1/catalog/{storefront}?ids[type]=...`, chunked by Apple's per-type id limit (300 songs or genres, 50 artists or playlists, 100 for the rest). Eight concurrent `songs.get` calls cost one round trip.
 - **Resource maps.** Every request asks for `format[resources]=map`, so a resource that appears several times in a response is sent once. An album with its tracks and their albums is about 2.7 times smaller this way.
 - **Caching.** GET responses are cached in memory for their `Cache-Control: max-age`, and concurrent identical requests share one fetch. Pass `cache: false` to turn this off.
+- **Whole relationships.** Remaining pages of a capped relationship load at Apple's largest page size. Library relationships report a total, so their pages load in parallel; catalog ones follow `next` links in order.
 - **Parallel library walks.** `library.*.all()` reads `total` from the first page, then loads the rest up to six at a time while still yielding in order.
 
 ## Errors

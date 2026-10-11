@@ -84,20 +84,16 @@ describe("catalog gets", () => {
       api.client.songs.getMany(ids),
       api.client.playlists.getMany(ids.slice(0, 120)),
     ]);
-    const sizes = api.urls.map((url) => [
-      url.searchParams.has("ids[songs]") ? "songs" : "playlists",
-      (
-        url.searchParams.get("ids[songs]") ??
-        url.searchParams.get("ids[playlists]") ??
-        ""
-      ).split(",").length,
-    ]);
-    expect(sizes.sort()).toEqual([
-      ["playlists", 20],
-      ["playlists", 50],
-      ["playlists", 50],
-      ["songs", 1],
-      ["songs", 300],
+    const sizes = api.urls.map((url) => {
+      const type = url.searchParams.has("ids[songs]") ? "songs" : "playlists";
+      return `${type}:${url.searchParams.get(`ids[${type}]`)?.split(",").length}`;
+    });
+    expect(sizes.sort((a, b) => a.localeCompare(b))).toEqual([
+      "playlists:20",
+      "playlists:50",
+      "playlists:50",
+      "songs:1",
+      "songs:300",
     ]);
   });
 

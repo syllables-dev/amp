@@ -1,0 +1,497 @@
+{
+  "data": [
+    {
+      "id": "1752214909",
+      "type": "albums",
+      "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+    }
+  ],
+  "resources": {
+    "albums": {
+      "1752214909": {
+        "id": "1752214909",
+        "type": "albums",
+        "href": "/v1/catalog/hk/albums/1752214909?l=en-GB",
+        "attributes": {
+          "artistName": "Sabrina Carpenter",
+          "name": "Short n' Sweet",
+          "trackCount": 12
+        },
+        "relationships": {
+          "artists": {
+            "href": "/v1/catalog/hk/albums/1752214909/artists?l=en-GB",
+            "data": [
+              {
+                "id": "390647681",
+                "type": "artists",
+                "href": "/v1/catalog/hk/artists/390647681?l=en-GB"
+              }
+            ]
+          },
+          "tracks": {
+            "href": "/v1/catalog/hk/albums/1752214909/tracks?l=en-GB",
+            "data": [
+              {
+                "id": "1752214910",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214910?l=en-GB"
+              },
+              {
+                "id": "1752214912",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214912?l=en-GB"
+              },
+              {
+                "id": "1752214913",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214913?l=en-GB"
+              },
+              {
+                "id": "1752214916",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214916?l=en-GB"
+              },
+              {
+                "id": "1752214918",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214918?l=en-GB"
+              },
+              {
+                "id": "1752214921",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214921?l=en-GB"
+              },
+              {
+                "id": "1752214923",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214923?l=en-GB"
+              },
+              {
+                "id": "1752214936",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752214936?l=en-GB"
+              },
+              {
+                "id": "1752215153",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752215153?l=en-GB"
+              },
+              {
+                "id": "1752215160",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752215160?l=en-GB"
+              },
+              {
+                "id": "1752215163",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752215163?l=en-GB"
+              },
+              {
+                "id": "1752215165",
+                "type": "songs",
+                "href": "/v1/catalog/hk/songs/1752215165?l=en-GB"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "artists": {
+      "390647681": {
+        "id": "390647681",
+        "type": "artists",
+        "href": "/v1/catalog/hk/artists/390647681?l=en-GB",
+        "attributes": {
+          "name": "Sabrina Carpenter"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/artists/390647681/albums?l=en-GB",
+            "next": "/v1/catalog/hk/artists/390647681/albums?l=en-GB&offset=25",
+            "data": [
+              {
+                "id": "1455648995",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1455648995?l=en-GB"
+              },
+              {
+                "id": "1740212432",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1740212432?l=en-GB"
+              },
+              {
+                "id": "1750307020",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1750307020?l=en-GB"
+              },
+              {
+                "id": "1819861154",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1819861154?l=en-GB"
+              },
+              {
+                "id": "1682354347",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1682354347?l=en-GB"
+              },
+              {
+                "id": "1795512297",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1795512297?l=en-GB"
+              },
+              {
+                "id": "1818103444",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1818103444?l=en-GB"
+              },
+              {
+                "id": "1713689507",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1713689507?l=en-GB"
+              },
+              {
+                "id": "1676555529",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1676555529?l=en-GB"
+              },
+              {
+                "id": "1744253545",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1744253545?l=en-GB"
+              },
+              {
+                "id": "1355955656",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1355955656?l=en-GB"
+              },
+              {
+                "id": "1654196002",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1654196002?l=en-GB"
+              },
+              {
+                "id": "1702580851",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1702580851?l=en-GB"
+              },
+              {
+                "id": "1862550592",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1862550592?l=en-GB"
+              },
+              {
+                "id": "1550026132",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1550026132?l=en-GB"
+              },
+              {
+                "id": "1469191254",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1469191254?l=en-GB"
+              },
+              {
+                "id": "1658432707",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1658432707?l=en-GB"
+              },
+              {
+                "id": "1444270106",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1444270106?l=en-GB"
+              },
+              {
+                "id": "1701036386",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1701036386?l=en-GB"
+              },
+              {
+                "id": "1631578046",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1631578046?l=en-GB"
+              },
+              {
+                "id": "1438671104",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1438671104?l=en-GB"
+              },
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              },
+              {
+                "id": "1523357415",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1523357415?l=en-GB"
+              },
+              {
+                "id": "6784077187",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/6784077187?l=en-GB"
+              },
+              {
+                "id": "1746800651",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1746800651?l=en-GB"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "songs": {
+      "1752214910": {
+        "id": "1752214910",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214910?l=en-GB",
+        "attributes": {
+          "durationInMillis": 157280,
+          "name": "Taste"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214910/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214912": {
+        "id": "1752214912",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214912?l=en-GB",
+        "attributes": {
+          "durationInMillis": 186170,
+          "name": "Please Please Please"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214912/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214913": {
+        "id": "1752214913",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214913?l=en-GB",
+        "attributes": {
+          "durationInMillis": 185265,
+          "name": "Good Graces"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214913/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214916": {
+        "id": "1752214916",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214916?l=en-GB",
+        "attributes": {
+          "durationInMillis": 218284,
+          "name": "Sharpest Tool"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214916/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214918": {
+        "id": "1752214918",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214918?l=en-GB",
+        "attributes": {
+          "durationInMillis": 164203,
+          "name": "Coincidence"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214918/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214921": {
+        "id": "1752214921",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214921?l=en-GB",
+        "attributes": {
+          "durationInMillis": 171870,
+          "name": "Bed Chem"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214921/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214923": {
+        "id": "1752214923",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214923?l=en-GB",
+        "attributes": {
+          "durationInMillis": 175459,
+          "name": "Espresso"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214923/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752214936": {
+        "id": "1752214936",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752214936?l=en-GB",
+        "attributes": {
+          "durationInMillis": 133479,
+          "name": "Dumb & Poetic"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752214936/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752215153": {
+        "id": "1752215153",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752215153?l=en-GB",
+        "attributes": {
+          "durationInMillis": 152195,
+          "name": "Slim Pickins"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752215153/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752215160": {
+        "id": "1752215160",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752215160?l=en-GB",
+        "attributes": {
+          "durationInMillis": 223192,
+          "name": "Juno"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752215160/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752215163": {
+        "id": "1752215163",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752215163?l=en-GB",
+        "attributes": {
+          "durationInMillis": 202001,
+          "name": "Lie To Girls"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752215163/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      },
+      "1752215165": {
+        "id": "1752215165",
+        "type": "songs",
+        "href": "/v1/catalog/hk/songs/1752215165?l=en-GB",
+        "attributes": {
+          "durationInMillis": 206296,
+          "name": "Don’t Smile"
+        },
+        "relationships": {
+          "albums": {
+            "href": "/v1/catalog/hk/songs/1752215165/albums?l=en-GB",
+            "data": [
+              {
+                "id": "1752214909",
+                "type": "albums",
+                "href": "/v1/catalog/hk/albums/1752214909?l=en-GB"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

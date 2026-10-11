@@ -160,7 +160,7 @@ await am.request("GET /v1/catalog/{storefront}/songs/{id}", {
 
 ## Speed
 
-- **Batching.** `get` calls made in the same tick for the same type and options become one request to `/v1/catalog/{storefront}?ids[type]=...`, in chunks of 100. Eight concurrent `songs.get` calls cost one round trip.
+- **Batching.** `get` calls made in the same tick for the same type and options become one request to `/v1/catalog/{storefront}?ids[type]=...`, chunked by Apple's per-type id limit (300 songs or genres, 50 artists or playlists, 100 for the rest). Eight concurrent `songs.get` calls cost one round trip.
 - **Resource maps.** Every request asks for `format[resources]=map`, so a resource that appears several times in a response is sent once. An album with its tracks and their albums is about 2.7 times smaller this way.
 - **Caching.** GET responses are cached in memory for their `Cache-Control: max-age`, and concurrent identical requests share one fetch. Pass `cache: false` to turn this off.
 - **Parallel library walks.** `library.*.all()` reads `total` from the first page, then loads the rest up to six at a time while still yielding in order.

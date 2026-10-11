@@ -16,7 +16,7 @@ Typed client for the Apple Music web player API at `amp-api.music.apple.com`.
 - `next` links drop the original query, so pagination merges the original query with the cursor from `next`.
 - `Registry` in `src/types.ts` drives every result type. Per type: `attributes` (always sent; optional only when Apple sometimes omits it), `extended` (only with `extend`), `refs` (bare references sent by default), `defaults` (full objects sent by default), `optional` (may be absent even when included), `partial` (included items may be bare references), `singleOnly` (library includes Apple rejects on list calls) and `views` (view name to item type).
 - Change the registry only after confirming against live responses with `bun run audit`. Never mark an attribute required unless every sampled response had it.
-- Batched gets respect Apple's per-type id limits in `src/internal/batcher.ts` (songs 300, artists and playlists 50, others 100).
+- Batched gets respect Apple's per-type id limits in `src/internal/batcher.ts` (songs and genres 300, artists and playlists 50, others 100).
 
 ## Rules
 

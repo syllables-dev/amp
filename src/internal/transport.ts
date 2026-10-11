@@ -1,4 +1,4 @@
-import { hosts, webPlayer } from "@/config";
+import { hosts, userAgent, webPlayer } from "@/config";
 import { AmpError, type ApiError } from "@/errors";
 import type { Token } from "@/types";
 
@@ -109,6 +109,7 @@ export const createTransport = (options: TransportOptions): Send => {
       authorization: `Bearer ${developerToken}`,
       origin: webPlayer.origin,
       referer: webPlayer.referer,
+      "user-agent": userAgent,
       ...(userToken ? { "media-user-token": userToken } : {}),
       ...(request.body === undefined
         ? {}

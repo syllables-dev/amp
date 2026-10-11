@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { AmpError, createClient } from "@/index";
+import { version } from "../package.json";
 import albumMap from "./fixtures/album-map.json";
 
 interface Reply {
@@ -179,6 +180,27 @@ describe("tokens", () => {
 });
 
 describe("transport", () => {
+  test("requests send the web player origin and the package user agent", async () => {
+    const sent: Headers[] = [];
+    const client = createClient({
+      developerToken: "token",
+      fetch: ((_input: string, init: RequestInit) => {
+        sent.push(new Headers(init.headers));
+        return Promise.resolve(Response.json({ results: {} }));
+      }) as unknown as typeof fetch,
+      storefront: "hk",
+      userToken: "user",
+    });
+    await client.search.hints("a");
+    expect(Object.fromEntries(sent[0] ?? [])).toEqual({
+      authorization: "Bearer token",
+      "media-user-token": "user",
+      origin: "https://music.apple.com",
+      referer: "https://music.apple.com/",
+      "user-agent": `syllables-amp/${version}`,
+    });
+  });
+
   test("identical gets within max-age are served from cache", async () => {
     const api = fakeApi(() => ({ body: { results: { terms: ["a"] } } }));
     await api.client.search.hints("a");

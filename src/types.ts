@@ -1,3 +1,5 @@
+import type { pageLimits } from "@/limits";
+
 export type Token = string | (() => string | Promise<string>);
 
 export type ContentRating = "clean" | "explicit";
@@ -897,6 +899,34 @@ export type Extend<T extends ResourceType> = keyof Extended<T> & string;
 export type AttributeName<T extends ResourceType> =
   | (keyof Attributes<T> & string)
   | Extend<T>;
+
+type Count<N extends number, A extends number[] = []> = A["length"] extends N
+  ? Exclude<A[number], 0> | N
+  : Count<N, [...A, A["length"]]>;
+
+export type UpTo<N extends number> = number extends N ? number : Count<N>;
+
+type RelationshipCaps = typeof pageLimits.relationships;
+
+type ViewCaps = typeof pageLimits.views;
+
+export type RelationshipLimit<
+  T extends ResourceType,
+  R extends string,
+> = T extends keyof RelationshipCaps
+  ? R extends keyof RelationshipCaps[T]
+    ? UpTo<RelationshipCaps[T][R] & number>
+    : number
+  : number;
+
+export type ViewLimit<
+  T extends ResourceType,
+  V extends string,
+> = T extends keyof ViewCaps
+  ? V extends keyof ViewCaps[T]
+    ? UpTo<ViewCaps[T][V] & number>
+    : UpTo<100>
+  : UpTo<100>;
 
 export type Defaults<T extends ResourceType> = Registry[T]["defaults"] &
   Relationship<T>;

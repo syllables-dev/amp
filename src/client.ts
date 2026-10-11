@@ -32,13 +32,16 @@ import type {
   Page,
   RecentlyAddedType,
   Relationship,
+  RelationshipLimit,
   Resource,
   SearchType,
   Storefront,
   Suggestions,
   Target,
   Token,
+  UpTo,
   View,
+  ViewLimit,
   ViewTarget,
   WithViews,
 } from "@/types";
@@ -57,8 +60,8 @@ export interface Scope {
   storefront?: string;
 }
 
-export interface PageOptions extends Scope {
-  limit?: number;
+export interface PageOptions<L extends number = number> extends Scope {
+  limit?: L;
 }
 
 export interface GetOptions<
@@ -78,7 +81,7 @@ export interface LibraryOptions<
   T extends LibraryType,
   I extends Relationship<T>,
   E extends Extend<T>,
-> extends PageOptions {
+> extends PageOptions<UpTo<100>> {
   extend?: readonly E[];
   include?: readonly I[];
 }
@@ -125,12 +128,12 @@ export interface CatalogCollection<T extends CatalogType> {
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
-    options?: PageOptions
+    options?: PageOptions<RelationshipLimit<T, R>>
   ) => Promise<Page<Resource<Target<T, R>>>>;
   view: <V extends View<T>>(
     id: string,
     view: V,
-    options?: PageOptions
+    options?: PageOptions<ViewLimit<T, V>>
   ) => Promise<Page<Resource<ViewTarget<T, V>>>>;
 }
 
@@ -154,7 +157,7 @@ export interface LibraryCollection<T extends LibraryType> {
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
-    options?: PageOptions
+    options?: PageOptions<RelationshipLimit<T, R>>
   ) => Promise<Page<Resource<Target<T, R>>>>;
 }
 
@@ -411,7 +414,7 @@ export const createClient = (options: ClientOptions) => {
     const T extends SearchType = "albums" | "artists" | "playlists" | "songs",
   >(
     term: string,
-    scope: PageOptions & { edge?: boolean; types?: readonly T[] } = {}
+    scope: PageOptions<UpTo<50>> & { edge?: boolean; types?: readonly T[] } = {}
   ): Promise<SearchResults<T>> => {
     const types = scope.types ?? ["albums", "artists", "playlists", "songs"];
     const source = {
@@ -446,7 +449,7 @@ export const createClient = (options: ClientOptions) => {
     term: string,
     scope: Scope & {
       edge?: boolean;
-      limit?: number;
+      limit?: UpTo<10>;
       types?: readonly T[];
     } = {}
   ): Promise<Suggestions<T>> => {
@@ -496,7 +499,7 @@ export const createClient = (options: ClientOptions) => {
   const charts = async <
     const T extends ChartType = "albums" | "playlists" | "songs",
   >(
-    scope: PageOptions & {
+    scope: PageOptions<UpTo<200>> & {
       types?: readonly T[];
       genre?: string;
       chart?: string;
@@ -540,7 +543,7 @@ export const createClient = (options: ClientOptions) => {
       | "library-songs",
   >(
     term: string,
-    scope: PageOptions & { types?: readonly T[] } = {}
+    scope: PageOptions<UpTo<25>> & { types?: readonly T[] } = {}
   ): Promise<LibrarySearchResults<T>> => {
     requireUser();
     const types = scope.types ?? [
@@ -609,7 +612,7 @@ export const createClient = (options: ClientOptions) => {
       artists: library("library-artists"),
       musicVideos: library("library-music-videos"),
       playlists: library("library-playlists"),
-      recentlyAdded: (scope: PageOptions = {}) => {
+      recentlyAdded: (scope: PageOptions<UpTo<25>> = {}) => {
         requireUser();
         return page<Resource<RecentlyAddedType>>({
           path: "/v1/me/library/recently-added",

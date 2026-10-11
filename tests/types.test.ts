@@ -115,3 +115,25 @@ test("suggestions and recently added carry their resource types", () => {
   >();
   expect(true).toBe(true);
 });
+
+test("limits stop at Apple's cap for each relationship, view and search", () => {
+  const check = () => {
+    am.playlists.related("pl.1", "tracks", { limit: 300 });
+    // @ts-expect-error playlist tracks stop at 300
+    am.playlists.related("pl.1", "tracks", { limit: 301 });
+    am.playlists.related("pl.1", "curator", { limit: 1 });
+    // @ts-expect-error a playlist has one curator
+    am.playlists.related("pl.1", "curator", { limit: 2 });
+    am.artists.view("1", "top-songs", { limit: 100 });
+    // @ts-expect-error latest-release holds one album
+    am.artists.view("1", "latest-release", { limit: 2 });
+    am.search("a", { limit: 50 });
+    // @ts-expect-error search stops at 50
+    am.search("a", { limit: 51 });
+    // @ts-expect-error suggestions stop at 10
+    am.search.suggestions("a", { limit: 11 });
+    // @ts-expect-error library pages stop at 100
+    am.library.songs.list({ limit: 101 });
+  };
+  expect(typeof check).toBe("function");
+});

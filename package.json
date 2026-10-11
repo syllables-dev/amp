@@ -1,0 +1,38 @@
+{
+  "name": "@syllables-dev/amp",
+  "version": "0.1.0",
+  "description": "Typed client for the Apple Music web player API.",
+  "license": "MIT",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bun scripts/build.ts",
+    "generate": "bun scripts/generate.ts",
+    "prepublishOnly": "bun run build",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "test": "bun test",
+    "tsgo": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.6",
+    "@types/bun": "latest",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+    "ultracite": "7.10.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/syllables-dev/amp.git"
+  }
+}

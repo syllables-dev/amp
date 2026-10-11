@@ -2,6 +2,7 @@ import { defaults, hosts } from "@/config";
 import { AmpError } from "@/errors";
 import { type Operations, operationHosts } from "@/generated/operations";
 import { createBatcher } from "@/internal/batcher";
+import { completeRelationships } from "@/internal/complete";
 import { camelCase, hydrator } from "@/internal/hydrate";
 import {
   loadPage,
@@ -71,6 +72,7 @@ export interface GetOptions<
   E extends Extend<T>,
   V extends View<T>,
 > extends Scope {
+  complete?: boolean;
   extend?: readonly E[];
   fields?: readonly F[];
   include?: readonly I[];
@@ -82,6 +84,7 @@ export interface LibraryOptions<
   I extends Relationship<T>,
   E extends Extend<T>,
 > extends PageOptions<UpTo<100>> {
+  complete?: boolean;
   extend?: readonly E[];
   include?: readonly I[];
 }
@@ -315,8 +318,14 @@ export const createClient = (options: ClientOptions) => {
             query: { ...query(scope), "format[resources]": "map" },
           })
         : await batch(storefront, type, id, query(scope));
-      if (missing === "skip" && !locate(document, type, id)) {
+      const raw = locate(document, type, id);
+      if (missing === "skip" && !raw) {
         return;
+      }
+      if (raw && scope.complete !== false) {
+        await completeRelationships(send, document, raw, {
+          l: language(scope),
+        });
       }
       return single<Resource<T, Defaults<T>>>(document, type, id);
     };
@@ -368,6 +377,12 @@ export const createClient = (options: ClientOptions) => {
             l: language(scope),
           },
         });
+        const raw = locate(document, type, id);
+        if (raw && scope.complete !== false) {
+          await completeRelationships(send, document, raw, {
+            l: language(scope),
+          });
+        }
         return single(document, type, id);
       },
       list: (scope) => page(source(scope)) as never,

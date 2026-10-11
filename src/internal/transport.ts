@@ -15,6 +15,7 @@ export type Query = Record<string, QueryValue>;
 export interface RawRelationship {
   data?: RawResource[];
   href?: string;
+  meta?: { total?: number };
   next?: string | null;
 }
 

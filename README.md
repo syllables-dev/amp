@@ -59,13 +59,13 @@ Requests always send `Origin: https://music.apple.com`, which the token requires
 
 ## Hosts
 
-Requests go to `amp-api.music.apple.com`. Pass `edge: true` to send them to `amp-api-edge.music.apple.com` instead, the edge-cached copy the web player uses for search:
+Requests go to `amp-api.music.apple.com`. Pass `edge: true` to send catalog search, suggestions and hints to `amp-api-edge.music.apple.com`, like the web player does:
 
 ```ts
 createClient({ developerToken, edge: true });
 ```
 
-Edge search results have no `next` link, so search pagination stops at the first page. Endpoints that live on other services, such as playback and purchase, keep their own host.
+Edge search is several times faster but ignores `offset` and returns no `next` link, so results stop at the first page. Library search and every other request stay on `amp-api`, where edge is slower or uncached. Endpoints that live on other services, such as playback and purchase, keep their own host.
 
 Apple runs a few other API hosts that the client does not target:
 

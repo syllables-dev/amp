@@ -53,7 +53,6 @@ export interface Request {
 export interface TransportOptions {
   cache?: boolean;
   developerToken: Token;
-  edge?: boolean;
   fetch?: typeof fetch;
   userToken?: Token;
 }
@@ -72,11 +71,6 @@ const serialize = (query: Query = {}) => {
     params.set(key, Array.isArray(value) ? value.join(",") : String(value));
   }
   return params.toString();
-};
-
-const isSearch = (path: string) => {
-  const [, version, area, , section] = path.split("/");
-  return version === "v1" && area === "catalog" && section === "search";
 };
 
 const readToken = (token?: Token) =>
@@ -100,8 +94,6 @@ export const createTransport = (options: TransportOptions): Send => {
   const cache = new Map<string, { expires: number; document: unknown }>();
   const inflight = new Map<string, Promise<unknown>>();
   const call = options.fetch ?? fetch;
-  const route = (path: string) =>
-    options.edge && isSearch(path) ? hosts.edge : hosts.api;
 
   const authorize = async (request: Request) => {
     const [developerToken, userToken] = await Promise.all([
@@ -155,7 +147,7 @@ export const createTransport = (options: TransportOptions): Send => {
 
   return <D extends RawDocument = RawDocument>(request: Request) => {
     const search = serialize(request.query);
-    const url = `${request.host ?? route(request.path)}${request.path}${search ? `?${search}` : ""}`;
+    const url = `${request.host ?? hosts.api}${request.path}${search ? `?${search}` : ""}`;
     if (request.method !== undefined && request.method !== "GET") {
       return load(url, request) as Promise<D>;
     }

@@ -1,4 +1,4 @@
-import { defaults } from "@/config";
+import { defaults, hosts } from "@/config";
 import { AmpError } from "@/errors";
 import { type Operations, operationHosts } from "@/generated/operations";
 import { createBatcher } from "@/internal/batcher";
@@ -43,7 +43,6 @@ import type {
 export interface ClientOptions {
   cache?: boolean;
   developerToken: Token;
-  edge?: boolean;
   fetch?: typeof fetch;
   language?: string;
   storefront?: string;
@@ -373,11 +372,14 @@ export const createClient = (options: ClientOptions) => {
     },
   };
 
+  const edgeHost = (scope: { edge?: boolean }) =>
+    scope.edge ? hosts.edge : undefined;
+
   const search = async <
     const T extends SearchType = "albums" | "artists" | "playlists" | "songs",
   >(
     term: string,
-    scope: PageOptions & { types?: readonly T[] } = {}
+    scope: PageOptions & { edge?: boolean; types?: readonly T[] } = {}
   ): Promise<SearchResults<T>> => {
     const types = scope.types ?? ["albums", "artists", "playlists", "songs"];
     const source = {
@@ -386,6 +388,7 @@ export const createClient = (options: ClientOptions) => {
     };
     const document = await send<ResultsDocument<RawRelationship>>({
       ...source,
+      host: edgeHost(scope),
       query: { ...source.query, "format[resources]": "map" },
     });
     return Object.fromEntries(
@@ -407,9 +410,14 @@ export const createClient = (options: ClientOptions) => {
 
   const suggestions = async (
     term: string,
-    scope: Scope & { types?: readonly SearchType[]; limit?: number } = {}
+    scope: Scope & {
+      edge?: boolean;
+      limit?: number;
+      types?: readonly SearchType[];
+    } = {}
   ): Promise<Suggestions> => {
     const document = await send<SuggestionsDocument>({
+      host: edgeHost(scope),
       path: `/v1/catalog/${await resolveStorefront(scope)}/search/suggestions`,
       query: {
         kinds: "terms,topResults",
@@ -441,9 +449,10 @@ export const createClient = (options: ClientOptions) => {
 
   const hints = async (
     term: string,
-    scope: Scope & { limit?: number } = {}
+    scope: Scope & { edge?: boolean; limit?: number } = {}
   ) => {
     const document = await send<HintsDocument>({
+      host: edgeHost(scope),
       path: `/v1/catalog/${await resolveStorefront(scope)}/search/hints`,
       query: { l: language(scope), limit: scope.limit, term },
     });

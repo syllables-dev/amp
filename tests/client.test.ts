@@ -226,28 +226,13 @@ describe("transport", () => {
 });
 
 describe("edge", () => {
-  const hostsFor = async (edge?: boolean) => {
-    const seen = new Set<string>();
-    const client = createClient({
-      developerToken: "token",
-      edge,
-      fetch: ((input: string | URL | Request) => {
-        seen.add(new URL(String(input)).host);
-        return Promise.resolve(Response.json({ data: [], results: {} }));
-      }) as typeof fetch,
-      storefront: "hk",
-    });
-    await client.search("a");
-    await client.request("GET /v1/editorial/{storefront}/groupings", {});
-    return [...seen];
-  };
-
-  test("amp-api serves everything by default", async () => {
-    expect(await hostsFor()).toEqual(["amp-api.music.apple.com"]);
-  });
-
-  test("edge sends only catalog search to amp-api-edge", async () => {
-    expect(await hostsFor(true)).toEqual([
+  test("only searches with edge: true use amp-api-edge", async () => {
+    const api = fakeApi(() => ({ body: { results: {} } }));
+    await api.client.search("a", { edge: true });
+    await api.client.search.hints("a", { edge: true });
+    await api.client.search.suggestions("a");
+    expect(api.urls.map((url) => url.host)).toEqual([
+      "amp-api-edge.music.apple.com",
       "amp-api-edge.music.apple.com",
       "amp-api.music.apple.com",
     ]);

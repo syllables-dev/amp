@@ -19,7 +19,7 @@ import {
 } from "@/internal/transport";
 import type {
   AnyResource,
-  Attributes,
+  AttributeName,
   CamelCase,
   CatalogType,
   Chart,
@@ -61,9 +61,10 @@ export interface PageOptions extends Scope {
 export interface GetOptions<
   T extends CatalogType,
   I extends Relationship<T>,
-  F extends keyof Attributes<T>,
+  F extends AttributeName<T>,
+  E extends Extend<T>,
 > extends Scope {
-  extend?: readonly Extend<T>[];
+  extend?: readonly E[];
   fields?: readonly F[];
   include?: readonly I[];
   views?: readonly View<T>[];
@@ -72,8 +73,9 @@ export interface GetOptions<
 export interface LibraryOptions<
   T extends LibraryType,
   I extends Relationship<T>,
+  E extends Extend<T>,
 > extends PageOptions {
-  extend?: readonly Extend<T>[];
+  extend?: readonly E[];
   include?: readonly I[];
 }
 
@@ -92,25 +94,28 @@ export type LibrarySort =
 export interface LibraryListOptions<
   T extends LibraryType,
   I extends Relationship<T>,
-> extends LibraryOptions<T, I> {
+  E extends Extend<T>,
+> extends LibraryOptions<T, I, E> {
   sort?: LibrarySort;
 }
 
 export interface CatalogCollection<T extends CatalogType> {
   get: <
     const I extends Relationship<T> = never,
-    const F extends keyof Attributes<T> = keyof Attributes<T>,
+    const F extends AttributeName<T> = AttributeName<T>,
+    const E extends Extend<T> = never,
   >(
     id: string,
-    options?: GetOptions<T, I, F>
-  ) => Promise<Resource<T, I | Defaults<T>, F>>;
+    options?: GetOptions<T, I, F, E>
+  ) => Promise<Resource<T, I | Defaults<T>, F, E>>;
   getMany: <
     const I extends Relationship<T> = never,
-    const F extends keyof Attributes<T> = keyof Attributes<T>,
+    const F extends AttributeName<T> = AttributeName<T>,
+    const E extends Extend<T> = never,
   >(
     ids: readonly string[],
-    options?: GetOptions<T, I, F>
-  ) => Promise<Resource<T, I | Defaults<T>, F>[]>;
+    options?: GetOptions<T, I, F, E>
+  ) => Promise<Resource<T, I | Defaults<T>, F, E>[]>;
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
@@ -124,16 +129,25 @@ export interface CatalogCollection<T extends CatalogType> {
 }
 
 export interface LibraryCollection<T extends LibraryType> {
-  all: <const I extends Relationship<T> = never>(
-    options?: LibraryListOptions<T, I>
-  ) => AsyncGenerator<Resource<T, I>>;
-  get: <const I extends Relationship<T> = never>(
+  all: <
+    const I extends Relationship<T> = never,
+    const E extends Extend<T> = never,
+  >(
+    options?: LibraryListOptions<T, I, E>
+  ) => AsyncGenerator<Resource<T, I, PropertyKey, E>>;
+  get: <
+    const I extends Relationship<T> = never,
+    const E extends Extend<T> = never,
+  >(
     id: string,
-    options?: LibraryOptions<T, I>
-  ) => Promise<Resource<T, I>>;
-  list: <const I extends Relationship<T> = never>(
-    options?: LibraryListOptions<T, I>
-  ) => Promise<Page<Resource<T, I>>>;
+    options?: LibraryOptions<T, I, E>
+  ) => Promise<Resource<T, I, PropertyKey, E>>;
+  list: <
+    const I extends Relationship<T> = never,
+    const E extends Extend<T> = never,
+  >(
+    options?: LibraryListOptions<T, I, E>
+  ) => Promise<Page<Resource<T, I, PropertyKey, E>>>;
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
@@ -262,7 +276,7 @@ export const createClient = (options: ClientOptions) => {
 
   const catalog = <T extends CatalogType>(type: T): CatalogCollection<T> => {
     const query = (
-      scope: GetOptions<T, Relationship<T>, keyof Attributes<T>>
+      scope: GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>>
     ): Query => ({
       extend: scope.extend,
       fields: scope.fields?.map(String),
@@ -272,7 +286,7 @@ export const createClient = (options: ClientOptions) => {
     });
     const fetchOne = async (
       id: string,
-      scope: GetOptions<T, Relationship<T>, keyof Attributes<T>>,
+      scope: GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>>,
       missing: "throw" | "skip"
     ) => {
       const storefront = await resolveStorefront(scope);
@@ -307,7 +321,9 @@ export const createClient = (options: ClientOptions) => {
   };
 
   const library = <T extends LibraryType>(type: T): LibraryCollection<T> => {
-    const source = (scope: LibraryListOptions<T, Relationship<T>> = {}) => {
+    const source = (
+      scope: LibraryListOptions<T, Relationship<T>, Extend<T>> = {}
+    ) => {
       requireUser();
       return {
         path: libraryPath(type),

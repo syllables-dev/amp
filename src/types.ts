@@ -109,15 +109,12 @@ export interface HeroItem {
 
 export interface AlbumAttributes {
   artistName: string;
-  artistUrl?: string;
   artwork: Artwork;
   audioTraits: AudioTrait[];
   classicalUrl?: string;
   contentRating?: ContentRating;
   copyright?: string;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
-  editorialVideo?: EditorialVideo;
   genreNames: string[];
   isCompilation: boolean;
   isComplete: boolean;
@@ -125,8 +122,6 @@ export interface AlbumAttributes {
   isPrerelease: boolean;
   isSingle: boolean;
   name: string;
-  offers?: Offer[];
-  plainEditorialNotes?: EditorialNotes;
   playParams?: PlayParams<"album">;
   recordLabel: string;
   releaseDate: string;
@@ -139,7 +134,6 @@ export interface SongAttributes {
   albumArtistName: string;
   albumName: string;
   artistName: string;
-  artistUrl?: string;
   artwork: Artwork;
   attribution?: string;
   audioLocale: string;
@@ -148,9 +142,7 @@ export interface SongAttributes {
   contentRating?: ContentRating;
   discNumber: number;
   durationInMillis: number;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
-  extendedAssetUrls?: ExtendedAssetUrls;
   genreNames: string[];
   hasLyrics: boolean;
   hasTimeSyncedLyrics: boolean;
@@ -158,12 +150,10 @@ export interface SongAttributes {
   isMasteredForItunes: boolean;
   isrc: string;
   isVocalAttenuationAllowed: boolean;
-  lyricsExcerpt?: string;
   movementCount?: number;
   movementName?: string;
   movementNumber?: number;
   name: string;
-  offers?: Offer[];
   playParams?: PlayParams<"song">;
   previews: AudioPreview[];
   releaseDate: string;
@@ -173,21 +163,11 @@ export interface SongAttributes {
 }
 
 export interface ArtistAttributes {
-  artistBio?: string;
   artwork?: Artwork;
-  bornOrFormed?: string;
   classicalUrl?: string;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
-  editorialVideo?: EditorialVideo;
   genreNames: string[];
-  hasBiographyContent?: boolean;
-  hero?: HeroItem[];
-  isGroup?: boolean;
-  keyColor?: string;
   name: string;
-  origin?: string;
-  plainEditorialNotes?: EditorialNotes;
   url: string;
 }
 
@@ -197,17 +177,13 @@ export interface PlaylistAttributes {
   curatorName?: string;
   curatorSocialHandle?: string;
   description?: EditorialNotes;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
   editorialPlaylistKind?: string;
   editorialPlaylistSubKind?: string;
-  editorialVideo?: EditorialVideo;
   hasCollaboration: boolean;
   isChart: boolean;
   lastModifiedDate?: string;
   name: string;
-  plainEditorialCard?: Record<string, unknown>;
-  plainEditorialNotes?: EditorialNotes;
   playlistType:
     | "editorial"
     | "external"
@@ -217,7 +193,6 @@ export interface PlaylistAttributes {
     | (string & {});
   playParams: PlaylistPlayParams;
   supportsSing: boolean;
-  trackCount?: number;
   url: string;
 }
 
@@ -225,20 +200,16 @@ export interface MusicVideoAttributes {
   albumArtistName?: string;
   albumName?: string;
   artistName: string;
-  artistUrl?: string;
   artwork: Artwork;
   contentRating?: ContentRating;
   discNumber?: number;
   durationInMillis: number;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
   genreNames: string[];
   has4K: boolean;
   hasHDR: boolean;
   isrc: string;
   name: string;
-  offers?: Offer[];
-  plainEditorialNotes?: EditorialNotes;
   playParams: PlayParams<"musicVideo">;
   previews: VideoPreview[];
   releaseDate: string;
@@ -254,9 +225,7 @@ export interface StationAttributes {
   band?: string;
   contentRating?: ContentRating;
   durationInMillis?: number;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
-  editorialVideo?: EditorialVideo;
   frequency?: string;
   isLive: boolean;
   kind:
@@ -270,7 +239,6 @@ export interface StationAttributes {
     | (string & {});
   mediaKind: "audio" | "video" | (string & {});
   name: string;
-  plainEditorialNotes?: EditorialNotes;
   playParams: StationPlayParams;
   radioUrl: string;
   requiresSubscription: boolean;
@@ -282,12 +250,9 @@ export interface StationAttributes {
 
 export interface AppleCuratorAttributes {
   artwork: Artwork;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
   kind: "Curator" | "Genre" | "Show" | (string & {});
   name: string;
-  plainEditorialNotes?: EditorialNotes;
-  playlistCount?: number;
   shortName: string;
   showHostName?: string;
   url: string;
@@ -295,11 +260,8 @@ export interface AppleCuratorAttributes {
 
 export interface CuratorAttributes {
   artwork: Artwork;
-  editorialArtwork?: EditorialArtwork;
   editorialNotes?: EditorialNotes;
   name: string;
-  plainEditorialNotes?: EditorialNotes;
-  playlistCount?: number;
   url: string;
 }
 
@@ -401,7 +363,6 @@ export interface LibrarySongAttributes {
   durationInMillis: number;
   genreNames: string[];
   hasLyrics: boolean;
-  inFavorites?: boolean;
   name: string;
   playParams?: LibraryPlayParams<"song">;
   releaseDate?: string;
@@ -412,9 +373,7 @@ export interface LibraryAlbumAttributes {
   artistName: string;
   artwork: Artwork;
   dateAdded: string;
-  editorialArtwork?: EditorialArtwork;
   genreNames: string[];
-  inFavorites?: boolean;
   name: string;
   playParams: LibraryPlayParams<"album">;
   releaseDate?: string;
@@ -422,7 +381,6 @@ export interface LibraryAlbumAttributes {
 }
 
 export interface LibraryArtistAttributes {
-  inFavorites?: boolean;
   name: string;
 }
 
@@ -432,16 +390,12 @@ export interface LibraryPlaylistAttributes {
   canEdit: boolean;
   dateAdded: string;
   description?: EditorialNotes;
-  editorialArtwork?: EditorialArtwork;
   hasCatalog: boolean;
   hasCollaboration: boolean;
-  inFavorites?: boolean;
-  isCollaborativeHost?: boolean;
   isPublic: boolean;
   lastModifiedDate?: string;
   name: string;
   playParams: LibraryPlayParams<"playlist">;
-  trackCount?: number;
 }
 
 export interface LibraryMusicVideoAttributes {
@@ -450,12 +404,83 @@ export interface LibraryMusicVideoAttributes {
   artwork: Artwork;
   durationInMillis: number;
   genreNames: string[];
-  inFavorites?: boolean;
   name: string;
   playParams: LibraryPlayParams<"musicVideo">;
   releaseDate?: string;
   trackNumber?: number;
 }
+
+export interface AlbumExtended {
+  artistUrl?: string;
+  editorialArtwork: EditorialArtwork;
+  editorialVideo?: EditorialVideo;
+  offers: Offer[];
+  plainEditorialNotes?: EditorialNotes;
+}
+
+export interface SongExtended {
+  artistUrl: string;
+  editorialArtwork: EditorialArtwork;
+  extendedAssetUrls?: ExtendedAssetUrls;
+  lyricsExcerpt?: string;
+  offers: Offer[];
+}
+
+export interface ArtistExtended {
+  artistBio?: string;
+  bornOrFormed?: string;
+  editorialArtwork: EditorialArtwork;
+  editorialVideo?: EditorialVideo;
+  hasBiographyContent: boolean;
+  hero: HeroItem[];
+  isGroup: boolean;
+  keyColor?: string;
+  origin?: string;
+  plainEditorialNotes?: EditorialNotes;
+}
+
+export interface PlaylistExtended {
+  editorialArtwork: EditorialArtwork;
+  editorialVideo?: EditorialVideo;
+  plainEditorialCard?: Record<string, unknown>;
+  plainEditorialNotes?: EditorialNotes;
+  trackCount: number;
+}
+
+export interface MusicVideoExtended {
+  artistUrl: string;
+  editorialArtwork: EditorialArtwork;
+  offers: Offer[];
+  plainEditorialNotes?: EditorialNotes;
+}
+
+export interface StationExtended {
+  editorialArtwork: EditorialArtwork;
+  editorialVideo?: EditorialVideo;
+  plainEditorialNotes?: EditorialNotes;
+}
+
+export interface CuratorExtended {
+  editorialArtwork: EditorialArtwork;
+  plainEditorialNotes?: EditorialNotes;
+  playlistCount: number;
+}
+
+export interface LibraryExtended {
+  inFavorites: boolean;
+}
+
+export interface LibraryAlbumExtended extends LibraryExtended {
+  editorialArtwork: EditorialArtwork;
+}
+
+export interface LibraryPlaylistExtended extends LibraryExtended {
+  editorialArtwork: EditorialArtwork;
+  isCollaborativeHost: boolean;
+  trackCount: number;
+}
+
+export type NoExtend = Record<never, never>;
 
 export interface Registry {
   albums: {
@@ -468,11 +493,7 @@ export interface Registry {
       tracks: "songs" | "music-videos";
     };
     defaults: "tracks";
-    extend:
-      | "editorialArtwork"
-      | "editorialVideo"
-      | "extendedAssetUrls"
-      | "offers";
+    extended: AlbumExtended;
     views:
       | "appears-on"
       | "audio-extras"
@@ -486,7 +507,7 @@ export interface Registry {
     attributes: AppleCuratorAttributes;
     relationships: { playlists: "playlists" };
     defaults: never;
-    extend: "editorialArtwork" | "plainEditorialNotes" | "playlistCount";
+    extended: CuratorExtended;
     views: never;
   };
   artists: {
@@ -499,17 +520,7 @@ export interface Registry {
       station: "stations";
     };
     defaults: never;
-    extend:
-      | "artistBio"
-      | "bornOrFormed"
-      | "editorialArtwork"
-      | "editorialVideo"
-      | "hasBiographyContent"
-      | "hero"
-      | "isGroup"
-      | "keyColor"
-      | "origin"
-      | "plainEditorialNotes";
+    extended: ArtistExtended;
     views:
       | "appears-on-albums"
       | "compilation-albums"
@@ -531,21 +542,21 @@ export interface Registry {
     attributes: CreditArtistAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   curators: {
     attributes: CuratorAttributes;
     relationships: { playlists: "playlists" };
     defaults: never;
-    extend: "editorialArtwork" | "plainEditorialNotes" | "playlistCount";
+    extended: CuratorExtended;
     views: never;
   };
   genres: {
     attributes: GenreAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "library-albums": {
@@ -556,14 +567,14 @@ export interface Registry {
       tracks: "library-songs" | "library-music-videos";
     };
     defaults: never;
-    extend: never;
+    extended: LibraryAlbumExtended;
     views: never;
   };
   "library-artists": {
     attributes: LibraryArtistAttributes;
     relationships: { albums: "library-albums"; catalog: "artists" };
     defaults: never;
-    extend: never;
+    extended: LibraryExtended;
     views: never;
   };
   "library-music-videos": {
@@ -574,7 +585,7 @@ export interface Registry {
       catalog: "music-videos";
     };
     defaults: never;
-    extend: never;
+    extended: LibraryExtended;
     views: never;
   };
   "library-playlists": {
@@ -584,7 +595,7 @@ export interface Registry {
       tracks: "library-songs" | "library-music-videos";
     };
     defaults: never;
-    extend: "hasCollaboration" | "isCollaborativeHost";
+    extended: LibraryPlaylistExtended;
     views: never;
   };
   "library-songs": {
@@ -595,21 +606,21 @@ export interface Registry {
       catalog: "songs";
     };
     defaults: never;
-    extend: never;
+    extended: LibraryExtended;
     views: never;
   };
   lyrics: {
     attributes: LyricsAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "music-movies": {
     attributes: MusicMovieAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "music-videos": {
@@ -622,7 +633,7 @@ export interface Registry {
       songs: "songs";
     };
     defaults: never;
-    extend: "editorialArtwork" | "offers" | "plainEditorialNotes";
+    extended: MusicVideoExtended;
     views: "more-by-artist" | "more-in-genre";
   };
   playlists: {
@@ -633,34 +644,28 @@ export interface Registry {
       tracks: "songs" | "music-videos";
     };
     defaults: "tracks";
-    extend:
-      | "editorialArtwork"
-      | "editorialVideo"
-      | "offers"
-      | "plainEditorialCard"
-      | "plainEditorialNotes"
-      | "trackCount";
+    extended: PlaylistExtended;
     views: "featured-artists" | "more-by-curator";
   };
   "record-labels": {
     attributes: RecordLabelAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: "latest-releases" | "top-releases";
   };
   "role-categories": {
     attributes: CreditCategoryAttributes;
     relationships: { "credit-artists": "credit-artists" };
     defaults: "credit-artists";
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "social-profiles": {
     attributes: SocialProfileAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   songs: {
@@ -676,35 +681,35 @@ export interface Registry {
       station: "stations";
     };
     defaults: never;
-    extend: "extendedAssetUrls" | "lyricsExcerpt" | "offers";
+    extended: SongExtended;
     views: never;
   };
   stations: {
     attributes: StationAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: "editorialArtwork" | "editorialVideo" | "plainEditorialNotes";
+    extended: StationExtended;
     views: never;
   };
   storefronts: {
     attributes: StorefrontAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "syllable-lyrics": {
     attributes: SyllableLyricsAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
   "uploaded-videos": {
     attributes: UploadedVideoAttributes;
     relationships: Record<never, never>;
     defaults: never;
-    extend: never;
+    extended: NoExtend;
     views: never;
   };
 }
@@ -761,7 +766,13 @@ export type Target<
 
 export type View<T extends ResourceType> = Registry[T]["views"];
 
-export type Extend<T extends ResourceType> = Registry[T]["extend"];
+export type Extended<T extends ResourceType> = Registry[T]["extended"];
+
+export type Extend<T extends ResourceType> = keyof Extended<T> & string;
+
+export type AttributeName<T extends ResourceType> =
+  | (keyof Attributes<T> & string)
+  | Extend<T>;
 
 export type Defaults<T extends ResourceType> = Registry[T]["defaults"] &
   Relationship<T>;
@@ -777,13 +788,16 @@ export interface Shelf {
   title?: string;
 }
 
+type Sparse<A, F extends PropertyKey> = Pick<A, Extract<keyof A, F>>;
+
 export type Resource<
   T extends ResourceType,
   I extends string = never,
-  F extends keyof Attributes<T> = keyof Attributes<T>,
+  F extends PropertyKey = PropertyKey,
+  E extends string = never,
 > = T extends ResourceType
   ? Ref<T> &
-      Pick<Attributes<T>, F> & {
+      Sparse<Attributes<T> & Pick<Extended<T>, Extract<E, Extend<T>>>, F> & {
         [R in Exclude<Relationship<T>, I> as CamelCase<R>]?: Ref<
           Target<T, R>
         >[];

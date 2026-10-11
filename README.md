@@ -57,6 +57,26 @@ Where the tokens come from is up to you. The developer token is the JWT the web 
 
 Requests always send `Origin: https://music.apple.com`, which the token requires. Browsers do not allow setting `Origin`, so use the client from a server, a worker, or Bun.
 
+## Hosts
+
+Apple runs the same API on several hosts. The client uses `amp-api.music.apple.com` unless told otherwise:
+
+```ts
+createClient({ developerToken, host: "amp-api-edge.music.apple.com" });
+createClient({ developerToken, host: { search: "amp-api-edge.music.apple.com" } });
+```
+
+A string sets the host for every request. An object routes by area, like the web player's `ampMusicAPIDomains` bag: `default`, `search` (`/v1/catalog/{storefront}/search...`) and `editorial` (`/v1/editorial/...`). Unset areas fall back to `default`. Endpoints that live on other services, such as playback and purchase, keep their own host.
+
+| Host | What it is |
+| --- | --- |
+| `amp-api.music.apple.com` | The main API. Everything works here. |
+| `amp-api-edge.music.apple.com` | Edge-cached copy of the same API. The web player sends search, hints and the search landing page here. Search results have no `next` link, so search pagination stops at the first page. |
+| `amp-api-preview.music.apple.com` | Pre-release deployment. Not reachable from the public internet. |
+| `amp-api-conversation.music.apple.com` | Conversational search service. Rejects the web player token with an empty 401. |
+| `classical-api.music.apple.com` | Separate, versioned API for Apple Music Classical. The Classical app itself still reads catalog data from `amp-api`. |
+| `library-sync.music.apple.com` | Library sync service for the native apps. Rejects the web player token with an empty 401. |
+
 ## Catalog
 
 `albums`, `songs`, `artists`, `playlists`, `musicVideos`, `stations`, `curators`, `appleCurators`, `recordLabels` and `genres` share one shape:

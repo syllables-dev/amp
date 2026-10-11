@@ -18,7 +18,6 @@ import {
   type RawResource,
 } from "@/internal/transport";
 import type {
-  AnyResource,
   AttributeName,
   CamelCase,
   CatalogType,
@@ -31,6 +30,7 @@ import type {
   LibraryType,
   Listable,
   Page,
+  RecentlyAddedType,
   Relationship,
   Resource,
   SearchType,
@@ -190,6 +190,7 @@ interface ResultsDocument<S> extends RawDocument {
 interface ChartSlice extends RawRelationship {
   chart?: string;
   name?: string;
+  shortName?: string;
 }
 
 interface SuggestionsDocument extends RawDocument {
@@ -439,14 +440,16 @@ export const createClient = (options: ClientOptions) => {
     ) as never;
   };
 
-  const suggestions = async (
+  const suggestions = async <
+    const T extends SearchType = "albums" | "artists" | "playlists" | "songs",
+  >(
     term: string,
     scope: Scope & {
       edge?: boolean;
       limit?: number;
-      types?: readonly SearchType[];
+      types?: readonly T[];
     } = {}
-  ): Promise<Suggestions> => {
+  ): Promise<Suggestions<T>> => {
     const document = await send<SuggestionsDocument>({
       host: edgeHost(scope),
       path: `/v1/catalog/${await resolveStorefront(scope)}/search/suggestions`,
@@ -460,7 +463,7 @@ export const createClient = (options: ClientOptions) => {
       },
     });
     const entries = document.results?.suggestions ?? [];
-    const resolve = hydrator(document);
+    const resolve = hydrator<Resource<T>>(document);
     return {
       terms: entries.flatMap((entry) =>
         entry.kind === "terms" && entry.searchTerm
@@ -518,6 +521,7 @@ export const createClient = (options: ClientOptions) => {
         (document.results?.[type] ?? []).map((slice) => ({
           id: slice.chart ?? "",
           name: slice.name ?? "",
+          shortName: slice.shortName,
           ...toPage(
             send,
             { path, query: { ...query, chart: slice.chart, types: [type] } },
@@ -607,7 +611,7 @@ export const createClient = (options: ClientOptions) => {
       playlists: library("library-playlists"),
       recentlyAdded: (scope: PageOptions = {}) => {
         requireUser();
-        return page<AnyResource>({
+        return page<Resource<RecentlyAddedType>>({
           path: "/v1/me/library/recently-added",
           query: { l: language(scope), limit: scope.limit ?? 25 },
         });

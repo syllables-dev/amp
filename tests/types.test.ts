@@ -101,3 +101,17 @@ test("requested views are present and typed by view", () => {
   expectTypeOf<ViewPage["items"][number]["type"]>().toEqualTypeOf<"artists">();
   expect(true).toBe(true);
 });
+
+test("suggestions and recently added carry their resource types", () => {
+  const suggest = () => am.search.suggestions("a", { types: ["songs"] });
+  const recent = () => am.library.recentlyAdded();
+  type Suggest = Awaited<ReturnType<typeof suggest>>;
+  type Recent = Awaited<ReturnType<typeof recent>>;
+  expectTypeOf<
+    Suggest["topResults"][number]["type"]
+  >().toEqualTypeOf<"songs">();
+  expectTypeOf<Recent["items"][number]["type"]>().toEqualTypeOf<
+    "albums" | "library-albums" | "library-playlists" | "playlists" | "stations"
+  >();
+  expect(true).toBe(true);
+});

@@ -994,9 +994,17 @@ export interface Page<T> {
 export interface Chart<T> extends Page<T> {
   id: string;
   name: string;
+  shortName?: string;
 }
 
-export interface Suggestions {
+export interface Suggestions<T extends ResourceType = ResourceType> {
   terms: { searchTerm: string; displayTerm: string }[];
-  topResults: AnyResource[];
+  topResults: Resource<T>[];
 }
+
+export type RecentlyAddedType =
+  | "albums"
+  | "library-albums"
+  | "library-playlists"
+  | "playlists"
+  | "stations";

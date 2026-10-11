@@ -14,7 +14,9 @@ Typed client for the Apple Music web player API at `amp-api.music.apple.com`.
 - Every request asks for `format[resources]=map`. Hydration turns the map into plain objects and cuts cycles with `{ id, type, href }` stubs, so results stay JSON-serializable.
 - Catalog `get` without `views` goes through the batcher, which merges same-tick gets into one multi-fetch. A batched id that is absent from the response is a 404, never another resource.
 - `next` links drop the original query, so pagination merges the original query with the cursor from `next`.
-- A relationship listed in a type's `defaults` arrives with full objects without `include`. Only add a relationship there after confirming it against a live response.
+- `Registry` in `src/types.ts` drives every result type. Per type: `attributes` (always sent; optional only when Apple sometimes omits it), `extended` (only with `extend`), `refs` (bare references sent by default), `defaults` (full objects sent by default), `optional` (may be absent even when included), `partial` (included items may be bare references), `singleOnly` (library includes Apple rejects on list calls) and `views` (view name to item type).
+- Change the registry only after confirming against live responses with `bun run audit`. Never mark an attribute required unless every sampled response had it.
+- Batched gets respect Apple's per-type id limits in `src/internal/batcher.ts` (songs 300, artists and playlists 50, others 100).
 
 ## Rules
 
@@ -35,5 +37,7 @@ After any change:
 1. `bun tsgo`
 2. `bun fix`
 3. `bun test`
+
+Type-level behavior is tested in `tests/types.test.ts` with `expectTypeOf` and `@ts-expect-error`; tsgo checks it.
 
 Rerun until all three pass in the same round.

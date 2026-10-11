@@ -17,6 +17,7 @@
     "README.md"
   ],
   "scripts": {
+    "audit": "bun scripts/audit.ts",
     "build": "bun scripts/build.ts",
     "generate": "bun scripts/generate.ts",
     "prepublishOnly": "bun run build",

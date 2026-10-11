@@ -55,7 +55,7 @@ createClient({ developerToken: () => tokens.current() });
 
 Where the tokens come from is up to you. The developer token is the JWT the web player at music.apple.com sends in its `Authorization` header, and it expires after a few months. The user token is the `media-user-token` cookie or header of a signed-in session. Treat both like passwords: keep them in environment variables or a secret store, never in source.
 
-Requests always send `Origin: https://music.apple.com`, which the token requires. Browsers do not allow setting `Origin`, so use the client from a server, a worker, or Bun.
+Requests always send `Origin: https://music.apple.com` and `Referer: https://music.apple.com/`, which the token requires, and identify themselves as `User-Agent: syllables-amp/<version>`. Browsers do not allow setting `Origin`, so use the client from a server, a worker, or Bun.
 
 ## Hosts
 

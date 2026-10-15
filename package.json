@@ -14,6 +14,7 @@
   },
   "files": [
     "dist",
+    "LICENSE",
     "README.md"
   ],
   "scripts": {
@@ -21,6 +22,7 @@
     "build": "bun scripts/build.ts",
     "generate": "bun scripts/generate.ts",
     "prepublishOnly": "bun run build",
+    "release": "npm publish --registry=https://registry.npmjs.org && npm publish --registry=https://npm.pkg.github.com",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "test": "bun test",

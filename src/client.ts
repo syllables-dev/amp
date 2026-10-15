@@ -214,8 +214,18 @@ interface HintsDocument extends RawDocument {
   results?: { terms?: string[] };
 }
 
-const libraryPath = (type: LibraryType) =>
-  `/v1/me/library/${type.slice("library-".length)}`;
+const searchTypes = ["albums", "artists", "playlists", "songs"] as const;
+
+const librarySearchTypes = [
+  "library-albums",
+  "library-artists",
+  "library-playlists",
+  "library-songs",
+] as const;
+
+const unprefix = (type: string) => type.slice("library-".length);
+
+const libraryPath = (type: LibraryType) => `/v1/me/library/${unprefix(type)}`;
 
 export const createClient = (options: ClientOptions) => {
   if (!options.developerToken) {
@@ -269,7 +279,12 @@ export const createClient = (options: ClientOptions) => {
     );
   };
 
-  const single = <T>(document: RawDocument, type: string, id: string) => {
+  const single = async <T>(
+    document: RawDocument,
+    type: string,
+    id: string,
+    scope?: Scope & { complete?: boolean }
+  ) => {
     const ref = locate(document, type, id);
     if (!ref) {
       throw new AmpError(404, {
@@ -278,6 +293,9 @@ export const createClient = (options: ClientOptions) => {
         title: "Resource Not Found",
       });
     }
+    if (scope && scope.complete !== false) {
+      await completeRelationships(send, document, ref, { l: language(scope) });
+    }
     return hydrator<T>(document)(ref);
   };
 
@@ -285,15 +303,14 @@ export const createClient = (options: ClientOptions) => {
     loadPage<T>(send, source);
 
   const catalog = <T extends CatalogType>(type: T): CatalogCollection<T> => {
-    const query = (
-      scope: GetOptions<
-        T,
-        Relationship<T>,
-        AttributeName<T>,
-        Extend<T>,
-        View<T>
-      >
-    ): Query => ({
+    type AnyGetOptions = GetOptions<
+      T,
+      Relationship<T>,
+      AttributeName<T>,
+      Extend<T>,
+      View<T>
+    >;
+    const query = (scope: AnyGetOptions): Query => ({
       extend: scope.extend,
       fields: scope.fields?.map(String),
       include: scope.include,
@@ -302,13 +319,7 @@ export const createClient = (options: ClientOptions) => {
     });
     const fetchOne = async (
       id: string,
-      scope: GetOptions<
-        T,
-        Relationship<T>,
-        AttributeName<T>,
-        Extend<T>,
-        View<T>
-      >,
+      scope: AnyGetOptions,
       missing: "throw" | "skip"
     ) => {
       const storefront = await resolveStorefront(scope);
@@ -318,16 +329,10 @@ export const createClient = (options: ClientOptions) => {
             query: { ...query(scope), "format[resources]": "map" },
           })
         : await batch(storefront, type, id, query(scope));
-      const raw = locate(document, type, id);
-      if (missing === "skip" && !raw) {
+      if (missing === "skip" && !locate(document, type, id)) {
         return;
       }
-      if (raw && scope.complete !== false) {
-        await completeRelationships(send, document, raw, {
-          l: language(scope),
-        });
-      }
-      return single<Resource<T, Defaults<T>>>(document, type, id);
+      return single<Resource<T, Defaults<T>>>(document, type, id, scope);
     };
     return {
       get: (id, scope = {}) => fetchOne(id, scope, "throw") as never,
@@ -377,13 +382,7 @@ export const createClient = (options: ClientOptions) => {
             l: language(scope),
           },
         });
-        const raw = locate(document, type, id);
-        if (raw && scope.complete !== false) {
-          await completeRelationships(send, document, raw, {
-            l: language(scope),
-          });
-        }
-        return single(document, type, id);
+        return single(document, type, id, scope);
       },
       list: (scope) => page(source(scope)) as never,
       related: (id, relationship, scope = {}) => {
@@ -425,41 +424,51 @@ export const createClient = (options: ClientOptions) => {
   const edgeHost = (scope: { edge?: boolean }) =>
     scope.edge ? hosts.edge : undefined;
 
-  const search = async <
-    const T extends SearchType = "albums" | "artists" | "playlists" | "songs",
-  >(
-    term: string,
-    scope: PageOptions<UpTo<50>> & { edge?: boolean; types?: readonly T[] } = {}
-  ): Promise<SearchResults<T>> => {
-    const types = scope.types ?? ["albums", "artists", "playlists", "songs"];
-    const source = {
-      path: `/v1/catalog/${await resolveStorefront(scope)}/search`,
-      query: { l: language(scope), limit: scope.limit, term, types },
-    };
+  const searchPages = async (
+    path: string,
+    query: Query,
+    types: readonly string[],
+    key: (type: string) => string,
+    host?: string
+  ) => {
     const document = await send<ResultsDocument<RawRelationship>>({
-      ...source,
-      host: edgeHost(scope),
-      query: { ...source.query, "format[resources]": "map" },
+      host,
+      path,
+      query: { ...query, "format[resources]": "map", types },
     });
     return Object.fromEntries(
       types.map((type) => [
-        camelCase(type),
+        key(type),
         toPage(
           send,
           {
-            path: source.path,
-            query: { ...source.query, types: [type] },
+            path,
+            query: { ...query, types: [type] },
             select: (current: ResultsDocument<RawRelationship>) =>
               current.results?.[type],
           },
           document
         ),
       ])
-    ) as never;
+    );
   };
 
+  const search = async <
+    const T extends SearchType = (typeof searchTypes)[number],
+  >(
+    term: string,
+    scope: PageOptions<UpTo<50>> & { edge?: boolean; types?: readonly T[] } = {}
+  ): Promise<SearchResults<T>> =>
+    searchPages(
+      `/v1/catalog/${await resolveStorefront(scope)}/search`,
+      { l: language(scope), limit: scope.limit, term },
+      scope.types ?? searchTypes,
+      camelCase,
+      edgeHost(scope)
+    ) as never;
+
   const suggestions = async <
-    const T extends SearchType = "albums" | "artists" | "playlists" | "songs",
+    const T extends SearchType = (typeof searchTypes)[number],
   >(
     term: string,
     scope: Scope & {
@@ -477,7 +486,7 @@ export const createClient = (options: ClientOptions) => {
         "limit[results:terms]": scope.limit,
         "limit[results:topResults]": scope.limit,
         term,
-        types: scope.types ?? ["albums", "artists", "playlists", "songs"],
+        types: scope.types ?? searchTypes,
       },
     });
     const entries = document.results?.suggestions ?? [];
@@ -551,45 +560,18 @@ export const createClient = (options: ClientOptions) => {
   };
 
   const librarySearch = async <
-    const T extends LibrarySearchType =
-      | "library-albums"
-      | "library-artists"
-      | "library-playlists"
-      | "library-songs",
+    const T extends LibrarySearchType = (typeof librarySearchTypes)[number],
   >(
     term: string,
     scope: PageOptions<UpTo<25>> & { types?: readonly T[] } = {}
   ): Promise<LibrarySearchResults<T>> => {
     requireUser();
-    const types = scope.types ?? [
-      "library-albums",
-      "library-artists",
-      "library-playlists",
-      "library-songs",
-    ];
-    const source = {
-      path: "/v1/me/library/search",
-      query: { l: language(scope), limit: scope.limit, term, types },
-    };
-    const document = await send<ResultsDocument<RawRelationship>>({
-      ...source,
-      query: { ...source.query, "format[resources]": "map" },
-    });
-    return Object.fromEntries(
-      types.map((type) => [
-        camelCase(type.slice("library-".length)),
-        toPage(
-          send,
-          {
-            path: source.path,
-            query: { ...source.query, types: [type] },
-            select: (current: ResultsDocument<RawRelationship>) =>
-              current.results?.[type],
-          },
-          document
-        ),
-      ])
-    ) as never;
+    return (await searchPages(
+      "/v1/me/library/search",
+      { l: language(scope), limit: scope.limit, term },
+      scope.types ?? librarySearchTypes,
+      (type) => camelCase(unprefix(type))
+    )) as never;
   };
 
   const request = async <K extends keyof Operations>(

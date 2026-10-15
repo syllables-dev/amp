@@ -132,11 +132,7 @@ export const createTransport = (options: TransportOptions): Send => {
       throw new AmpError(response.status, document.errors?.[0]);
     }
     const seconds = maxAge(response.headers.get("cache-control"));
-    if (
-      options.cache !== false &&
-      (request.method ?? "GET") === "GET" &&
-      seconds > 0
-    ) {
+    if (options.cache !== false && seconds > 0) {
       if (cache.size >= 500) {
         cache.delete(cache.keys().next().value ?? "");
       }
@@ -150,21 +146,17 @@ export const createTransport = (options: TransportOptions): Send => {
   return <D extends RawDocument = RawDocument>(request: Request) => {
     const search = serialize(request.query);
     const url = `${request.host ?? hosts.api}${request.path}${search ? `?${search}` : ""}`;
-    if (request.method !== undefined && request.method !== "GET") {
+    if ((request.method ?? "GET") !== "GET") {
       return load(url, request) as Promise<D>;
     }
     const cached = cache.get(url);
     if (cached && cached.expires > Date.now()) {
       return Promise.resolve(cached.document as D);
     }
-    const pending = inflight.get(url) ?? load(url, request);
-    if (!inflight.has(url)) {
-      inflight.set(url, pending);
-      pending.then(
-        () => inflight.delete(url),
-        () => inflight.delete(url)
-      );
-    }
+    const pending =
+      inflight.get(url) ??
+      load(url, request).finally(() => inflight.delete(url));
+    inflight.set(url, pending);
     return pending as Promise<D>;
   };
 };

@@ -6,6 +6,7 @@ import { completeRelationships } from "@/internal/complete";
 import { camelCase, hydrator } from "@/internal/hydrate";
 import {
   loadPage,
+  mapped,
   type PageSource,
   paginate,
   toPage,
@@ -216,6 +217,8 @@ interface HintsDocument extends RawDocument {
 
 const searchTypes = ["albums", "artists", "playlists", "songs"] as const;
 
+const chartTypes = ["albums", "playlists", "songs"] as const;
+
 const librarySearchTypes = [
   "library-albums",
   "library-artists",
@@ -234,7 +237,8 @@ export const createClient = (options: ClientOptions) => {
     );
   }
   const send = createTransport(options);
-  const batch = createBatcher(send);
+  const sendMap = mapped(send);
+  const batch = createBatcher(sendMap);
   let detected: Promise<string> | undefined;
 
   const detectStorefront = async () => {
@@ -256,6 +260,14 @@ export const createClient = (options: ClientOptions) => {
 
   const language = (scope: Scope = {}) => scope.language ?? options.language;
 
+  const catalogPath = async (scope: Scope, ...segments: string[]) =>
+    [`/v1/catalog/${await resolveStorefront(scope)}`, ...segments].join("/");
+
+  const pageQuery = (scope: PageOptions) => ({
+    l: language(scope),
+    limit: scope.limit,
+  });
+
   const requireUser = () => {
     if (!options.userToken) {
       throw new Error(
@@ -265,6 +277,10 @@ export const createClient = (options: ClientOptions) => {
   };
 
   const locate = (document: RawDocument, type: string, id: string) => {
+    const direct = document.resources?.[type]?.[id];
+    if (direct) {
+      return direct;
+    }
     const candidates = [
       ...Object.values(document.resources?.[type] ?? {}),
       ...(document.data ?? []).filter((entry) => entry.type === type),
@@ -279,7 +295,27 @@ export const createClient = (options: ClientOptions) => {
     );
   };
 
-  const single = async <T>(
+  const notFound = (type: string, id: string) =>
+    new AmpError(404, {
+      code: "40400",
+      detail: `No ${type} with id ${id}`,
+      title: "Resource Not Found",
+    });
+
+  const expand = async <T>(
+    document: RawDocument,
+    ref: RawResource,
+    scope?: Scope & { complete?: boolean }
+  ) => {
+    if (scope && scope.complete !== false) {
+      await completeRelationships(sendMap, document, ref, {
+        l: language(scope),
+      });
+    }
+    return hydrator<T>(document)(ref);
+  };
+
+  const single = <T>(
     document: RawDocument,
     type: string,
     id: string,
@@ -287,20 +323,13 @@ export const createClient = (options: ClientOptions) => {
   ) => {
     const ref = locate(document, type, id);
     if (!ref) {
-      throw new AmpError(404, {
-        code: "40400",
-        detail: `No ${type} with id ${id}`,
-        title: "Resource Not Found",
-      });
+      throw notFound(type, id);
     }
-    if (scope && scope.complete !== false) {
-      await completeRelationships(send, document, ref, { l: language(scope) });
-    }
-    return hydrator<T>(document)(ref);
+    return expand<T>(document, ref, scope);
   };
 
   const page = <T>(source: PageSource<RawDocument>) =>
-    loadPage<T>(send, source);
+    loadPage<T>(sendMap, source);
 
   const catalog = <T extends CatalogType>(type: T): CatalogCollection<T> => {
     type AnyGetOptions = GetOptions<
@@ -322,65 +351,63 @@ export const createClient = (options: ClientOptions) => {
       scope: AnyGetOptions,
       missing: "throw" | "skip"
     ) => {
-      const storefront = await resolveStorefront(scope);
       const document = scope.views?.length
-        ? await send({
-            path: `/v1/catalog/${storefront}/${type}/${id}`,
-            query: { ...query(scope), "format[resources]": "map" },
+        ? await sendMap({
+            path: await catalogPath(scope, type, id),
+            query: query(scope),
           })
-        : await batch(storefront, type, id, query(scope));
-      if (missing === "skip" && !locate(document, type, id)) {
-        return;
+        : await batch(await resolveStorefront(scope), type, id, query(scope));
+      const ref = locate(document, type, id);
+      if (ref) {
+        return expand<Resource<T, Defaults<T>>>(document, ref, scope);
       }
-      return single<Resource<T, Defaults<T>>>(document, type, id, scope);
+      if (missing === "throw") {
+        throw notFound(type, id);
+      }
     };
+    const related = async <R>(
+      id: string,
+      segment: string,
+      scope: PageOptions
+    ) =>
+      page<R>({
+        path: await catalogPath(scope, type, id, segment),
+        query: pageQuery(scope),
+      });
     return {
       get: (id, scope = {}) => fetchOne(id, scope, "throw") as never,
       getMany: async (ids, scope = {}) =>
         (
           await Promise.all(ids.map((id) => fetchOne(id, scope, "skip")))
         ).filter((resource) => resource !== undefined) as never,
-      related: async (id, relationship, scope = {}) =>
-        page({
-          path: `/v1/catalog/${await resolveStorefront(scope)}/${type}/${id}/${relationship}`,
-          query: { l: language(scope), limit: scope.limit },
-        }),
-      view: async (id, view, scope = {}) =>
-        page({
-          path: `/v1/catalog/${await resolveStorefront(scope)}/${type}/${id}/view/${view}`,
-          query: { l: language(scope), limit: scope.limit },
-        }),
+      related: (id, relationship, scope = {}) =>
+        related(id, relationship, scope),
+      view: (id, view, scope = {}) => related(id, `view/${view}`, scope),
     };
   };
 
   const library = <T extends LibraryType>(type: T): LibraryCollection<T> => {
+    const query = (scope: LibraryOptions<T, Relationship<T>, Extend<T>>) => ({
+      extend: scope.extend,
+      include: scope.include,
+      l: language(scope),
+    });
     const source = (
       scope: LibraryListOptions<T, Relationship<T>, Extend<T>> = {}
     ) => {
       requireUser();
       return {
         path: libraryPath(type),
-        query: {
-          extend: scope.extend,
-          include: scope.include,
-          l: language(scope),
-          limit: scope.limit ?? 100,
-          sort: scope.sort,
-        },
+        query: { ...query(scope), limit: scope.limit ?? 100, sort: scope.sort },
       };
     };
     return {
-      all: (scope) => walk(send, source(scope)) as never,
+      all: (scope) => walk(sendMap, source(scope)) as never,
       get: async (id, scope = {}) => {
         requireUser();
-        const document = await send({
+        const document = await sendMap({
           path: `${libraryPath(type)}/${id}`,
-          query: {
-            extend: scope.extend,
-            "format[resources]": "map",
-            include: scope.include,
-            l: language(scope),
-          },
+          query: query(scope),
         });
         return single(document, type, id, scope);
       },
@@ -389,34 +416,33 @@ export const createClient = (options: ClientOptions) => {
         requireUser();
         return page({
           path: `${libraryPath(type)}/${id}/${relationship}`,
-          query: { l: language(scope), limit: scope.limit },
+          query: pageQuery(scope),
         });
       },
     };
   };
 
+  const lyricsAttributes = async (id: string, kind: string, scope: Scope) => {
+    const document = await send({
+      path: await catalogPath(scope, "songs", id, kind),
+      query: { l: language(scope) },
+    });
+    return document.data?.[0]?.attributes;
+  };
+
   const songs: SongCollection = {
     ...catalog("songs"),
     credits: async (id, scope = {}) => {
-      const document = await send({
-        path: `/v1/catalog/${await resolveStorefront(scope)}/songs/${id}/credits`,
-        query: { "format[resources]": "map", l: language(scope) },
+      const document = await sendMap({
+        path: await catalogPath(scope, "songs", id, "credits"),
+        query: { l: language(scope) },
       });
       return (document.data ?? []).map(hydrator<CreditCategory>(document));
     },
-    lyrics: async (id, scope = {}) => {
-      const document = await send({
-        path: `/v1/catalog/${await resolveStorefront(scope)}/songs/${id}/lyrics`,
-        query: { l: language(scope) },
-      });
-      return String(document.data?.[0]?.attributes?.ttml ?? "");
-    },
+    lyrics: async (id, scope = {}) =>
+      String((await lyricsAttributes(id, "lyrics", scope))?.ttml ?? ""),
     syllableLyrics: async (id, scope = {}) => {
-      const document = await send({
-        path: `/v1/catalog/${await resolveStorefront(scope)}/songs/${id}/syllable-lyrics`,
-        query: { l: language(scope) },
-      });
-      const attributes = document.data?.[0]?.attributes;
+      const attributes = await lyricsAttributes(id, "syllable-lyrics", scope);
       return String(attributes?.ttml ?? attributes?.ttmlLocalizations ?? "");
     },
   };
@@ -431,16 +457,16 @@ export const createClient = (options: ClientOptions) => {
     key: (type: string) => string,
     host?: string
   ) => {
-    const document = await send<ResultsDocument<RawRelationship>>({
+    const document = await sendMap<ResultsDocument<RawRelationship>>({
       host,
       path,
-      query: { ...query, "format[resources]": "map", types },
+      query: { ...query, types },
     });
     return Object.fromEntries(
       types.map((type) => [
         key(type),
         toPage(
-          send,
+          sendMap,
           {
             path,
             query: { ...query, types: [type] },
@@ -460,8 +486,8 @@ export const createClient = (options: ClientOptions) => {
     scope: PageOptions<UpTo<50>> & { edge?: boolean; types?: readonly T[] } = {}
   ): Promise<SearchResults<T>> =>
     searchPages(
-      `/v1/catalog/${await resolveStorefront(scope)}/search`,
-      { l: language(scope), limit: scope.limit, term },
+      await catalogPath(scope, "search"),
+      { ...pageQuery(scope), term },
       scope.types ?? searchTypes,
       camelCase,
       edgeHost(scope)
@@ -479,7 +505,7 @@ export const createClient = (options: ClientOptions) => {
   ): Promise<Suggestions<T>> => {
     const document = await send<SuggestionsDocument>({
       host: edgeHost(scope),
-      path: `/v1/catalog/${await resolveStorefront(scope)}/search/suggestions`,
+      path: await catalogPath(scope, "search", "suggestions"),
       query: {
         kinds: "terms,topResults",
         l: language(scope),
@@ -514,14 +540,14 @@ export const createClient = (options: ClientOptions) => {
   ) => {
     const document = await send<HintsDocument>({
       host: edgeHost(scope),
-      path: `/v1/catalog/${await resolveStorefront(scope)}/search/hints`,
-      query: { l: language(scope), limit: scope.limit, term },
+      path: await catalogPath(scope, "search", "hints"),
+      query: { ...pageQuery(scope), term },
     });
     return document.results?.terms ?? [];
   };
 
   const charts = async <
-    const T extends ChartType = "albums" | "playlists" | "songs",
+    const T extends ChartType = (typeof chartTypes)[number],
   >(
     scope: PageOptions<UpTo<200>> & {
       types?: readonly T[];
@@ -529,18 +555,17 @@ export const createClient = (options: ClientOptions) => {
       chart?: string;
     } = {}
   ): Promise<Charts<T>> => {
-    const types = scope.types ?? ["albums", "playlists", "songs"];
-    const path = `/v1/catalog/${await resolveStorefront(scope)}/charts`;
+    const types = scope.types ?? chartTypes;
+    const path = await catalogPath(scope, "charts");
     const query = {
+      ...pageQuery(scope),
       chart: scope.chart,
       genre: scope.genre,
-      l: language(scope),
-      limit: scope.limit,
       types,
     };
-    const document = await send<ResultsDocument<ChartSlice[]>>({
+    const document = await sendMap<ResultsDocument<ChartSlice[]>>({
       path,
-      query: { ...query, "format[resources]": "map" },
+      query,
     });
     return Object.fromEntries(
       types.map((type) => [
@@ -550,7 +575,7 @@ export const createClient = (options: ClientOptions) => {
           name: slice.name ?? "",
           shortName: slice.shortName,
           ...toPage(
-            send,
+            sendMap,
             { path, query: { ...query, chart: slice.chart, types: [type] } },
             { ...document, data: slice.data, next: slice.next }
           ),
@@ -568,7 +593,7 @@ export const createClient = (options: ClientOptions) => {
     requireUser();
     return (await searchPages(
       "/v1/me/library/search",
-      { l: language(scope), limit: scope.limit, term },
+      { ...pageQuery(scope), term },
       scope.types ?? librarySearchTypes,
       (type) => camelCase(unprefix(type))
     )) as never;
@@ -613,7 +638,7 @@ export const createClient = (options: ClientOptions) => {
         requireUser();
         return page<Resource<RecentlyAddedType>>({
           path: "/v1/me/library/recently-added",
-          query: { l: language(scope), limit: scope.limit ?? 25 },
+          query: { ...pageQuery(scope), limit: scope.limit ?? 25 },
         });
       },
       search: librarySearch,
@@ -651,7 +676,7 @@ export const createClient = (options: ClientOptions) => {
       list: (scope: PageOptions = {}) =>
         page<Storefront>({
           path: "/v1/storefronts",
-          query: { l: language(scope), limit: scope.limit },
+          query: pageQuery(scope),
         }),
     },
   };

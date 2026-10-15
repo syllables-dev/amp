@@ -1,4 +1,4 @@
-import { hosts } from "@/config";
+import { follow, remainingOffsets } from "@/internal/pages";
 import type {
   Query,
   RawDocument,
@@ -21,23 +21,17 @@ const fetchRest = async (
   query: Query
 ) => {
   const load = (link: string, offset?: number) => {
-    const url = new URL(link, hosts.api);
-    return send({
-      path: url.pathname,
-      query: {
-        ...query,
-        ...Object.fromEntries(url.searchParams),
-        ...(offset === undefined ? {} : { offset }),
-        "format[resources]": "map",
-      },
-    });
+    const request = follow(link, query);
+    return send(
+      offset === undefined
+        ? request
+        : { ...request, query: { ...request.query, offset } }
+    );
   };
   const size = Number(query.limit) || loaded;
   if (total && size) {
     return Promise.all(
-      Array.from({ length: Math.ceil((total - loaded) / size) }, (_, index) =>
-        load(next, loaded + index * size)
-      )
+      remainingOffsets(total, loaded, size).map((offset) => load(next, offset))
     );
   }
   const pages: RawDocument[] = [];
@@ -59,7 +53,11 @@ const merge = (
   for (const page of pages) {
     relationship.data?.push(...(page.data ?? []));
     for (const [type, entries] of Object.entries(page.resources ?? {})) {
-      resources[type] = { ...entries, ...resources[type] };
+      resources[type] ??= {};
+      const target = resources[type];
+      for (const [id, entry] of Object.entries(entries)) {
+        target[id] ??= entry;
+      }
     }
   }
   document.resources = resources;

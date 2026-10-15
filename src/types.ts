@@ -851,16 +851,7 @@ export type CatalogType =
 
 export type LibraryType = Extract<ResourceType, `library-${string}`>;
 
-export type SearchType =
-  | "albums"
-  | "apple-curators"
-  | "artists"
-  | "curators"
-  | "music-videos"
-  | "playlists"
-  | "record-labels"
-  | "songs"
-  | "stations";
+export type SearchType = Exclude<CatalogType, "genres">;
 
 export type LibrarySearchType =
   | "library-albums"
@@ -906,27 +897,25 @@ type Count<N extends number, A extends number[] = []> = A["length"] extends N
 
 export type UpTo<N extends number> = number extends N ? number : Count<N>;
 
-type RelationshipCaps = typeof pageLimits.relationships;
+type Cap<C, T, K, D> = T extends keyof C
+  ? K extends keyof C[T]
+    ? UpTo<C[T][K] & number>
+    : D
+  : D;
 
-type ViewCaps = typeof pageLimits.views;
+export type RelationshipLimit<T extends ResourceType, R extends string> = Cap<
+  typeof pageLimits.relationships,
+  T,
+  R,
+  number
+>;
 
-export type RelationshipLimit<
-  T extends ResourceType,
-  R extends string,
-> = T extends keyof RelationshipCaps
-  ? R extends keyof RelationshipCaps[T]
-    ? UpTo<RelationshipCaps[T][R] & number>
-    : number
-  : number;
-
-export type ViewLimit<
-  T extends ResourceType,
-  V extends string,
-> = T extends keyof ViewCaps
-  ? V extends keyof ViewCaps[T]
-    ? UpTo<ViewCaps[T][V] & number>
-    : UpTo<100>
-  : UpTo<100>;
+export type ViewLimit<T extends ResourceType, V extends string> = Cap<
+  typeof pageLimits.views,
+  T,
+  V,
+  UpTo<100>
+>;
 
 export type Defaults<T extends ResourceType> = Registry[T]["defaults"] &
   Relationship<T>;
@@ -962,6 +951,11 @@ export interface Shelf<T extends ResourceType = ResourceType> {
 
 type Sparse<A, F extends PropertyKey> = Pick<A, Extract<keyof A, F>>;
 
+type Requested<T extends ResourceType, I extends string> = Extract<
+  Relationship<T>,
+  I
+>;
+
 export type Resource<
   T extends ResourceType,
   I extends string = never,
@@ -973,12 +967,12 @@ export type Resource<
         [R in Exclude<Refs<T>, I> as CamelCase<R>]?: Ref<Target<T, R>>[];
       } & {
         [R in Exclude<
-          Extract<Relationship<T>, I>,
+          Requested<T, I>,
           Registry[T]["optional"]
         > as CamelCase<R>]: Included<T, R>;
       } & {
         [R in Extract<
-          Extract<Relationship<T>, I>,
+          Requested<T, I>,
           Registry[T]["optional"]
         > as CamelCase<R>]?: Included<T, R>;
       } & {

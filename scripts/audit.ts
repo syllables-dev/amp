@@ -1,3 +1,7 @@
+import { hosts, webPlayer } from "@/config";
+import { chunk } from "@/internal/batcher";
+import type { RawResource } from "@/internal/transport";
+
 const developerToken = process.env.AMP_DEVELOPER_TOKEN;
 const userToken = process.env.AMP_USER_TOKEN;
 
@@ -10,17 +14,10 @@ if (!developerToken) {
 
 const headers = {
   authorization: `Bearer ${developerToken}`,
-  origin: "https://music.apple.com",
-  referer: "https://music.apple.com/",
+  origin: webPlayer.origin,
+  referer: webPlayer.referer,
   ...(userToken ? { "media-user-token": userToken } : {}),
 };
-
-interface RawResource {
-  attributes?: Record<string, unknown>;
-  id: string;
-  relationships?: Record<string, { data?: RawResource[] }>;
-  type: string;
-}
 
 interface Document {
   data?: RawResource[];
@@ -98,11 +95,6 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
   },
 };
 
-const idLimits: Record<string, number> = {
-  artists: 50,
-  playlists: 50,
-  songs: 300,
-};
 const terms = [
   "love",
   "jazz",
@@ -119,7 +111,7 @@ const sampleSize = Number(process.env.AUDIT_SAMPLE ?? 300);
 const only = new Set(process.argv.slice(2));
 
 const get = async (path: string, query: Record<string, string> = {}) => {
-  const url = new URL(path, "https://amp-api.music.apple.com");
+  const url = new URL(path, hosts.api);
   for (const [key, value] of Object.entries(query)) {
     url.searchParams.set(key, value);
   }
@@ -226,14 +218,9 @@ const fetchMany = async (
   query: Record<string, string>
 ) => {
   const profile = new Profile();
-  const size = idLimits[type] ?? 100;
-  const chunks = Array.from(
-    { length: Math.ceil(ids.length / size) },
-    (_, index) => ids.slice(index * size, index * size + size)
-  );
   const documents = await Promise.all(
-    chunks.map((chunk) =>
-      get("/v1/catalog/us", { ...query, [`ids[${type}]`]: chunk.join(",") })
+    chunk(ids, type).map((group) =>
+      get("/v1/catalog/us", { ...query, [`ids[${type}]`]: group.join(",") })
     )
   );
   for (const resource of documents.flatMap((document) => document.data ?? [])) {

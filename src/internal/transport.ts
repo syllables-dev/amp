@@ -91,8 +91,20 @@ const expiry = new WeakMap<object, number>();
 export const isFresh = (document: object) =>
   (expiry.get(document) ?? 0) > Date.now();
 
+export const remember = <V>(
+  map: Map<string, V>,
+  key: string,
+  value: V,
+  max: number
+) => {
+  if (map.size >= max) {
+    map.delete(map.keys().next().value ?? "");
+  }
+  map.set(key, value);
+};
+
 export const createTransport = (options: TransportOptions): Send => {
-  const cache = new Map<string, { expires: number; document: unknown }>();
+  const cache = new Map<string, RawDocument>();
   const inflight = new Map<string, Promise<unknown>>();
   const call = options.fetch ?? fetch;
 
@@ -132,13 +144,13 @@ export const createTransport = (options: TransportOptions): Send => {
       throw new AmpError(response.status, document.errors?.[0]);
     }
     const seconds = maxAge(response.headers.get("cache-control"));
-    if (options.cache !== false && seconds > 0) {
-      if (cache.size >= 500) {
-        cache.delete(cache.keys().next().value ?? "");
-      }
-      const expires = Date.now() + seconds * 1000;
-      expiry.set(document, expires);
-      cache.set(url, { document, expires });
+    if (
+      options.cache !== false &&
+      (request.method ?? "GET") === "GET" &&
+      seconds > 0
+    ) {
+      expiry.set(document, Date.now() + seconds * 1000);
+      remember(cache, url, document, 500);
     }
     return document;
   };
@@ -150,9 +162,10 @@ export const createTransport = (options: TransportOptions): Send => {
       return load(url, request) as Promise<D>;
     }
     const cached = cache.get(url);
-    if (cached && cached.expires > Date.now()) {
-      return Promise.resolve(cached.document as D);
+    if (cached && isFresh(cached)) {
+      return Promise.resolve(cached as D);
     }
+    cache.delete(url);
     const pending =
       inflight.get(url) ??
       load(url, request).finally(() => inflight.delete(url));

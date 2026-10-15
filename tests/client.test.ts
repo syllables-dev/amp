@@ -6,20 +6,30 @@ import albumMap from "./fixtures/album-map.json";
 interface Reply {
   body?: unknown;
   cacheControl?: string;
+  delay?: number;
   status?: number;
 }
 
-const fakeApi = (reply: (url: URL) => Reply) => {
+const fakeApi = (
+  reply: (url: URL) => Reply,
+  options: { userToken?: string } = {}
+) => {
   const urls: URL[] = [];
   const fetcher = (input: string | URL | Request) => {
     const url = new URL(String(input));
     urls.push(url);
-    const { status = 200, body, cacheControl = "max-age=60" } = reply(url);
-    return Promise.resolve(
-      new Response(body === undefined ? "" : JSON.stringify(body), {
-        headers: { "cache-control": cacheControl },
-        status,
-      })
+    const {
+      status = 200,
+      body,
+      cacheControl = "max-age=60",
+      delay = 0,
+    } = reply(url);
+    return Bun.sleep(delay).then(
+      () =>
+        new Response(body === undefined ? "" : JSON.stringify(body), {
+          headers: { "cache-control": cacheControl },
+          status,
+        })
     );
   };
   return {
@@ -27,6 +37,7 @@ const fakeApi = (reply: (url: URL) => Reply) => {
       developerToken: "token",
       fetch: fetcher as typeof fetch,
       storefront: "hk",
+      userToken: options.userToken,
     }),
     urls,
   };
@@ -177,12 +188,8 @@ describe("capped relationships", () => {
   });
 
   test("a known total loads the remaining pages in parallel", async () => {
-    const urls: URL[] = [];
-    const client = createClient({
-      developerToken: "token",
-      fetch: ((input: string | URL | Request) => {
-        const url = new URL(String(input));
-        urls.push(url);
+    const api = fakeApi(
+      (url) => {
         const offset = Number(url.searchParams.get("offset") ?? 0);
         const body = url.pathname.endsWith("/tracks")
           ? {
@@ -208,18 +215,16 @@ describe("capped relationships", () => {
                 },
               ],
             };
-        return Promise.resolve(Response.json(body));
-      }) as typeof fetch,
-      storefront: "hk",
-      userToken: "user",
-    });
-    const result = await client.library.playlists.get("p.1", {
+        return { body };
+      },
+      { userToken: "user" }
+    );
+    const result = await api.client.library.playlists.get("p.1", {
       include: ["tracks"],
     });
-    expect(urls.slice(1).map((url) => url.searchParams.get("offset"))).toEqual([
-      "100",
-      "200",
-    ]);
+    expect(
+      api.urls.slice(1).map((url) => url.searchParams.get("offset"))
+    ).toEqual(["100", "200"]);
     expect(result.tracks.map((track) => track.id).slice(99)).toEqual([
       "99",
       "100",
@@ -252,12 +257,8 @@ describe("pagination", () => {
 
 describe("library", () => {
   test("all() loads remaining pages in parallel but yields them in order", async () => {
-    const urls: URL[] = [];
-    const client = createClient({
-      developerToken: "token",
-      fetch: ((input: string | URL | Request) => {
-        const url = new URL(String(input));
-        urls.push(url);
+    const api = fakeApi(
+      (url) => {
         const offset = Number(url.searchParams.get("offset") ?? 0);
         const body = {
           data: [0, 1].map((step) => ({
@@ -271,22 +272,20 @@ describe("library", () => {
               ? `/v1/me/library/songs?offset=${offset + 2}`
               : undefined,
         };
-        return Bun.sleep(offset === 2 ? 20 : 0).then(
-          () =>
-            new Response(JSON.stringify(body), {
-              headers: { "cache-control": "no-store" },
-            })
-        );
-      }) as typeof fetch,
-      storefront: "hk",
-      userToken: "user",
-    });
+        return {
+          body,
+          cacheControl: "no-store",
+          delay: offset === 2 ? 20 : 0,
+        };
+      },
+      { userToken: "user" }
+    );
     const ids: string[] = [];
-    for await (const entry of client.library.songs.all({ limit: 2 })) {
+    for await (const entry of api.client.library.songs.all({ limit: 2 })) {
       ids.push(entry.id);
     }
     expect(ids).toEqual(["0", "1", "2", "3", "4", "5", "6", "7"]);
-    expect(urls).toHaveLength(4);
+    expect(api.urls).toHaveLength(4);
   });
 });
 

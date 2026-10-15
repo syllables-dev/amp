@@ -14,6 +14,28 @@ export interface PageSource<D extends RawDocument> {
   select?: (document: D) => RawRelationship | undefined;
 }
 
+export const mapped =
+  (send: Send): Send =>
+  (request) =>
+    send({
+      ...request,
+      query: { ...request.query, "format[resources]": "map" },
+    });
+
+export const follow = (link: string, query: Query) => {
+  const url = new URL(link, hosts.api);
+  return {
+    path: url.pathname,
+    query: { ...query, ...Object.fromEntries(url.searchParams) },
+  };
+};
+
+export const remainingOffsets = (total: number, loaded: number, size: number) =>
+  Array.from(
+    { length: Math.ceil((total - loaded) / size) },
+    (_, index) => loaded + index * size
+  );
+
 export const toPage = <T, D extends RawDocument = RawDocument>(
   send: Send,
   source: PageSource<D>,
@@ -21,19 +43,11 @@ export const toPage = <T, D extends RawDocument = RawDocument>(
 ): Page<T> => {
   const slice = source.select ? source.select(document) : document;
   const resolve = hydrator<T>(document);
-  const next = slice?.next ? new URL(slice.next, hosts.api) : undefined;
+  const next = slice?.next;
   return {
     items: (slice?.data ?? []).map(resolve),
     next: next
-      ? () =>
-          loadPage<T, D>(send, {
-            ...source,
-            path: next.pathname,
-            query: {
-              ...source.query,
-              ...Object.fromEntries(next.searchParams),
-            },
-          })
+      ? () => loadPage<T, D>(send, { ...source, ...follow(next, source.query) })
       : undefined,
     total: document.meta?.total,
   };
@@ -46,10 +60,7 @@ export const loadPage = async <T, D extends RawDocument = RawDocument>(
   toPage<T, D>(
     send,
     source,
-    await send<D>({
-      path: source.path,
-      query: { ...source.query, "format[resources]": "map" },
-    })
+    await send<D>({ path: source.path, query: source.query })
   );
 
 export async function* paginate<T>(page: Page<T> | Promise<Page<T>>) {
@@ -71,10 +82,7 @@ export async function* walk<T>(send: Send, source: PageSource<RawDocument>) {
     return;
   }
   yield* first.items;
-  const offsets = Array.from(
-    { length: Math.ceil((first.total - size) / size) },
-    (_, index) => size * (index + 1)
-  );
+  const offsets = remainingOffsets(first.total, size, size);
   const pending: Promise<Page<T>>[] = [];
   let cursor = 0;
   const refill = () => {

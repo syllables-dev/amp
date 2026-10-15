@@ -2,6 +2,7 @@ import {
   isFresh,
   type Query,
   type RawDocument,
+  remember,
   type Send,
 } from "@/internal/transport";
 
@@ -10,11 +11,18 @@ interface Batch {
   ids: Set<string>;
 }
 
-const idLimits: Record<string, number> = {
+export const idLimits: Record<string, number> = {
   artists: 50,
   genres: 300,
   playlists: 50,
   songs: 300,
+};
+
+export const chunk = (ids: string[], type: string) => {
+  const size = idLimits[type] ?? 100;
+  return Array.from({ length: Math.ceil(ids.length / size) }, (_, index) =>
+    ids.slice(index * size, index * size + size)
+  );
 };
 
 export const createBatcher = (send: Send) => {
@@ -28,22 +36,13 @@ export const createBatcher = (send: Send) => {
     ids: string[]
   ) => {
     const documents = new Map<string, RawDocument>();
-    const size = idLimits[type] ?? 100;
-    const chunks = Array.from(
-      { length: Math.ceil(ids.length / size) },
-      (_, index) => ids.slice(index * size, index * size + size)
-    );
     await Promise.all(
-      chunks.map(async (chunk) => {
+      chunk(ids, type).map(async (group) => {
         const document = await send({
           path: `/v1/catalog/${storefront}`,
-          query: {
-            ...query,
-            [`ids[${type}]`]: chunk,
-            "format[resources]": "map",
-          },
+          query: { ...query, [`ids[${type}]`]: group },
         });
-        for (const id of chunk) {
+        for (const id of group) {
           documents.set(id, document);
         }
       })
@@ -53,10 +52,12 @@ export const createBatcher = (send: Send) => {
 
   return async (storefront: string, type: string, id: string, query: Query) => {
     const key = `${storefront}\n${type}\n${JSON.stringify(query, Object.keys(query).sort())}`;
-    const remembered = known.get(`${key}\n${id}`);
+    const slot = `${key}\n${id}`;
+    const remembered = known.get(slot);
     if (remembered && isFresh(remembered)) {
       return remembered;
     }
+    known.delete(slot);
     let batch = batches.get(key);
     if (!batch) {
       const ids = new Set<string>();
@@ -73,10 +74,9 @@ export const createBatcher = (send: Send) => {
     }
     batch.ids.add(id);
     const document = (await batch.documents).get(id) ?? {};
-    if (known.size >= 2000) {
-      known.delete(known.keys().next().value ?? "");
+    if (isFresh(document)) {
+      remember(known, slot, document, 2000);
     }
-    known.set(`${key}\n${id}`, document);
     return document;
   };
 };

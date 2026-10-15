@@ -76,6 +76,9 @@ describe("catalog gets", () => {
     expect(missing.status === "rejected" && missing.reason).toBeInstanceOf(
       AmpError
     );
+    expect(missing.status === "rejected" && missing.reason).toMatchObject({
+      status: 404,
+    });
   });
 
   test("batches respect each type's id limit", async () => {
@@ -266,9 +269,9 @@ describe("library", () => {
             id: String(offset + step),
             type: "library-songs",
           })),
-          meta: { total: 7 },
+          meta: { total: 8 },
           next:
-            offset + 2 < 7
+            offset + 2 < 8
               ? `/v1/me/library/songs?offset=${offset + 2}`
               : undefined,
         };

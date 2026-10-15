@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from "bun:test";
+import { expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
 import type { EditorialArtwork, Offer, Ref, Resource } from "@/types";
 
@@ -19,7 +19,6 @@ test("extend-only attributes exist only when requested", () => {
     Extended["editorialArtwork"]
   >().toEqualTypeOf<EditorialArtwork>();
   expectTypeOf<Extended["name"]>().toEqualTypeOf<string>();
-  expect(true).toBe(true);
 });
 
 test("fields narrow both base and extended attributes", () => {
@@ -32,17 +31,15 @@ test("fields narrow both base and extended attributes", () => {
   expectTypeOf<Sparse>().not.toHaveProperty("offers");
   expectTypeOf<Sparse>().not.toHaveProperty("artistName");
   expectTypeOf<Kept["offers"]>().toEqualTypeOf<Offer[]>();
-  expect(true).toBe(true);
 });
 
 test("invalid extends do not compile", () => {
-  const check = () => {
+  const _check = () => {
     // @ts-expect-error artwork is a base attribute, not an extend
     am.albums.get("1", { extend: ["artwork"] });
     // @ts-expect-error lyricsExcerpt only exists on songs
     am.albums.get("1", { extend: ["lyricsExcerpt"] });
   };
-  expect(typeof check).toBe("function");
 });
 
 test("relationships follow what the API sends", () => {
@@ -67,11 +64,10 @@ test("relationships follow what the API sends", () => {
     | Ref<"apple-curators" | "artists" | "curators" | "social-profiles">
     | Resource<"apple-curators" | "artists" | "curators" | "social-profiles">
   >();
-  expect(true).toBe(true);
 });
 
 test("library lists reject includes that need a single fetch", () => {
-  const check = () => {
+  const _check = () => {
     am.library.albums.get("1", { include: ["tracks"] });
     am.library.albums.list({ include: ["catalog", "artists"] });
     // @ts-expect-error tracks can only be included when fetching one album
@@ -79,7 +75,6 @@ test("library lists reject includes that need a single fetch", () => {
     // @ts-expect-error library songs have no playlists relationship
     am.library.songs.get("1", { include: ["playlists"] });
   };
-  expect(typeof check).toBe("function");
 });
 
 test("requested views are present and typed by view", () => {
@@ -99,7 +94,6 @@ test("requested views are present and typed by view", () => {
   expectTypeOf<WithViews["views"]>().not.toHaveProperty("singles");
   expectTypeOf<Plain>().not.toHaveProperty("views");
   expectTypeOf<ViewPage["items"][number]["type"]>().toEqualTypeOf<"artists">();
-  expect(true).toBe(true);
 });
 
 test("suggestions and recently added carry their resource types", () => {
@@ -113,11 +107,10 @@ test("suggestions and recently added carry their resource types", () => {
   expectTypeOf<Recent["items"][number]["type"]>().toEqualTypeOf<
     "albums" | "library-albums" | "library-playlists" | "playlists" | "stations"
   >();
-  expect(true).toBe(true);
 });
 
 test("limits stop at Apple's cap for each relationship, view and search", () => {
-  const check = () => {
+  const _check = () => {
     am.playlists.related("pl.1", "tracks", { limit: 300 });
     // @ts-expect-error playlist tracks stop at 300
     am.playlists.related("pl.1", "tracks", { limit: 301 });
@@ -135,5 +128,4 @@ test("limits stop at Apple's cap for each relationship, view and search", () => 
     // @ts-expect-error library pages stop at 100
     am.library.songs.list({ limit: 101 });
   };
-  expect(typeof check).toBe("function");
 });

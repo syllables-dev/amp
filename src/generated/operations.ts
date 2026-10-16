@@ -136,7 +136,7 @@ export interface Operations {
     "relate[canvas-shelves-collection]"?: readonly "see-all"[];
     "limit[canvas-shelves-collection:contents]"?: number;
     "limit[canvas-shelves-collection:contents{displayStyle}]"?: string;
-    "filter[canvas-shelves-collection.contents.type]"?: string;
+    "filter[canvas-shelves-collection:contents{type}]"?: string;
     "include[concerts]"?: readonly ("artists" | "playlists" | "venues")[];
     "extend[concerts]"?: readonly ("eventDataProviders" | "ticketDataProvider" | "tickets" | "url")[];
     "extend[playlists]"?: readonly string[];

@@ -257,7 +257,7 @@ describe("pagination", () => {
     expect(api.urls[1]?.searchParams.get("format[resources]")).toBe("map");
   });
 
-  test("chart pages read the next page from results, not top-level data", async () => {
+  test("chart next pages follow chartId and read results, not top-level data", async () => {
     const playlist = (id: string) => ({
       attributes: { name: `playlist ${id}` },
       id,
@@ -269,35 +269,43 @@ describe("pagination", () => {
       next,
     });
     const nextPages: Record<string, unknown> = {
-      "city-top": { cityCharts: [page("playlists", "pl.2", "city-top")] },
-      "most-played": { songs: [page("songs", "2", "most-played")] },
+      "1": { songs: [page("songs", "2", "most-played")] },
+      "2": { cityCharts: [page("playlists", "pl.2", "city-top")] },
     };
-    const api = fakeApi((url) => ({
-      body: {
-        resources: {
-          playlists: { "pl.1": playlist("pl.1"), "pl.2": playlist("pl.2") },
-          songs: { "1": song("1"), "2": song("2") },
-        },
-        results: nextPages[url.searchParams.get("chart") ?? ""] ?? {
-          cityCharts: [
-            page(
-              "playlists",
-              "pl.1",
-              "city-top",
-              "/v1/catalog/hk/charts?chartId=2&offset=1"
-            ),
-          ],
-          songs: [
-            page(
-              "songs",
-              "1",
-              "most-played",
-              "/v1/catalog/hk/charts?chartId=1&offset=1"
-            ),
-          ],
-        },
-      },
-    }));
+    const api = fakeApi((url) =>
+      url.searchParams.has("chartId") &&
+      (url.searchParams.has("chart") || url.searchParams.has("types"))
+        ? { body: { errors: [{ code: "40000" }] }, status: 400 }
+        : {
+            body: {
+              resources: {
+                playlists: {
+                  "pl.1": playlist("pl.1"),
+                  "pl.2": playlist("pl.2"),
+                },
+                songs: { "1": song("1"), "2": song("2") },
+              },
+              results: nextPages[url.searchParams.get("chartId") ?? ""] ?? {
+                cityCharts: [
+                  page(
+                    "playlists",
+                    "pl.1",
+                    "city-top",
+                    "/v1/catalog/hk/charts?chartId=2&offset=1"
+                  ),
+                ],
+                songs: [
+                  page(
+                    "songs",
+                    "1",
+                    "most-played",
+                    "/v1/catalog/hk/charts?chartId=1&offset=1"
+                  ),
+                ],
+              },
+            },
+          }
+    );
     const charts = await api.client.charts({
       types: ["songs"],
       with: ["cityCharts"],

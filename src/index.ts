@@ -1,6 +1,7 @@
 // biome-ignore-all lint/performance/noBarrelFile: file defines package public surface
 export {
   type CatalogCollection,
+  type ChartExtra,
   type Charts,
   type Client,
   type ClientOptions,

@@ -181,9 +181,11 @@ export type LibrarySearchResults<T extends LibrarySearchType> = {
   >;
 };
 
-export type Charts<T extends ChartType> = {
+export type ChartExtra = "cityCharts" | "dailyGlobalTopCharts";
+
+export type Charts<T extends ChartType, W extends ChartExtra = never> = {
   [K in T as CamelCase<K>]: Chart<Resource<K>>[];
-};
+} & { [K in W]: Chart<Resource<"playlists">>[] };
 
 export type RequestParams<K extends keyof Operations> =
   Record<string, never> extends Operations[K]
@@ -548,14 +550,17 @@ export const createClient = (options: ClientOptions) => {
 
   const charts = async <
     const T extends ChartType = (typeof chartTypes)[number],
+    const W extends ChartExtra = never,
   >(
     scope: PageOptions<UpTo<200>> & {
       types?: readonly T[];
+      with?: readonly W[];
       genre?: string;
       chart?: string;
     } = {}
-  ): Promise<Charts<T>> => {
+  ): Promise<Charts<T, W>> => {
     const types = scope.types ?? chartTypes;
+    const extras = scope.with ?? [];
     const path = await catalogPath(scope, "charts");
     const query = {
       ...pageQuery(scope),
@@ -565,23 +570,28 @@ export const createClient = (options: ClientOptions) => {
     };
     const document = await sendMap<ResultsDocument<ChartSlice[]>>({
       path,
-      query,
+      query: { ...query, with: extras.length > 0 ? extras : undefined },
     });
-    return Object.fromEntries(
-      types.map((type) => [
-        camelCase(type),
-        (document.results?.[type] ?? []).map((slice) => ({
-          id: slice.chart ?? "",
-          name: slice.name ?? "",
-          shortName: slice.shortName,
-          ...toPage(
-            sendMap,
-            { path, query: { ...query, chart: slice.chart, types: [type] } },
-            { ...document, data: slice.data, next: slice.next }
-          ),
-        })),
-      ])
-    ) as never;
+    const toCharts = (key: string, type: ChartType) =>
+      (document.results?.[key] ?? []).map((slice, index) => ({
+        id: slice.chart ?? "",
+        name: slice.name ?? "",
+        shortName: slice.shortName,
+        ...toPage(
+          sendMap,
+          {
+            path,
+            query: { ...query, chart: slice.chart, types: [type] },
+            select: (loaded: ResultsDocument<ChartSlice[]>) =>
+              loaded.results?.[key]?.[loaded === document ? index : 0],
+          },
+          document
+        ),
+      }));
+    return Object.fromEntries([
+      ...types.map((type) => [camelCase(type), toCharts(type, type)]),
+      ...extras.map((extra) => [extra, toCharts(extra, "playlists")]),
+    ]) as never;
   };
 
   const librarySearch = async <

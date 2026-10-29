@@ -129,3 +129,17 @@ test("limits stop at Apple's cap for each relationship, view and search", () => 
     am.library.songs.list({ limit: 101 });
   };
 });
+
+test("chart extras appear only when requested with", () => {
+  const plain = () => am.charts({ types: ["songs"] });
+  const extended = () =>
+    am.charts({ types: ["songs"], with: ["dailyGlobalTopCharts"] });
+  type Plain = Awaited<ReturnType<typeof plain>>;
+  type Extended = Awaited<ReturnType<typeof extended>>;
+  expectTypeOf<Plain>().not.toHaveProperty("dailyGlobalTopCharts");
+  expectTypeOf<
+    Extended["dailyGlobalTopCharts"][number]["items"][number]
+  >().toEqualTypeOf<Resource<"playlists">>();
+  // @ts-expect-error a chart extra not asked for stays off the result
+  expectTypeOf<Extended["cityCharts"]>();
+});

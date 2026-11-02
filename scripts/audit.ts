@@ -48,6 +48,8 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
       "editorialArtwork",
       "editorialVideo",
       "hasBiographyContent",
+      "hasBonusContent",
+      "hasMusicEvents",
       "hero",
       "isGroup",
       "keyColor",

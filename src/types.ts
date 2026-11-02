@@ -524,6 +524,8 @@ export interface ArtistExtended {
   editorialArtwork: EditorialArtwork;
   editorialVideo?: EditorialVideo;
   hasBiographyContent: boolean;
+  hasBonusContent: boolean;
+  hasMusicEvents: boolean;
   hero: HeroItem[];
   isGroup: boolean;
   keyColor?: string;

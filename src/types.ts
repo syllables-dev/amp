@@ -490,6 +490,7 @@ export interface AlbumExtended {
   editorialVideo?: EditorialVideo;
   offers: Offer[];
   plainEditorialNotes?: EditorialNotes;
+  versionHash: string;
 }
 
 export interface SpatialOffsets {
@@ -536,6 +537,7 @@ export interface PlaylistExtended {
   plainEditorialCard?: Record<string, unknown>;
   plainEditorialNotes?: EditorialNotes;
   trackCount: number;
+  versionHash: string;
 }
 
 export interface MusicVideoExtended {

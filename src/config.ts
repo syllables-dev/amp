@@ -7,6 +7,7 @@ export const hosts = {
 
 export const webPlayer = {
   origin: "https://music.apple.com",
+  platform: "web",
   referer: "https://music.apple.com/",
 };
 

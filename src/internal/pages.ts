@@ -1,4 +1,4 @@
-import { hosts } from "@/config";
+import { hosts, webPlayer } from "@/config";
 import { hydrator } from "@/internal/hydrate";
 import type {
   Query,
@@ -19,7 +19,11 @@ export const mapped =
   (request) =>
     send({
       ...request,
-      query: { ...request.query, "format[resources]": "map" },
+      query: {
+        ...request.query,
+        "format[resources]": "map",
+        platform: webPlayer.platform,
+      },
     });
 
 export const follow = (link: string, query: Query) => {

@@ -255,6 +255,7 @@ describe("pagination", () => {
     expect(names).toEqual(["song 0", "song 1"]);
     expect(api.urls[1]?.searchParams.get("l")).toBe("en-GB");
     expect(api.urls[1]?.searchParams.get("format[resources]")).toBe("map");
+    expect(api.urls[1]?.searchParams.get("platform")).toBe("web");
   });
 
   test("chart next pages follow chartId and read results, not top-level data", async () => {

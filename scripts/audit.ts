@@ -123,6 +123,7 @@ const only = new Set(process.argv.slice(2));
 
 const get = async (path: string, query: Record<string, string> = {}) => {
   const url = new URL(path, hosts.api);
+  url.searchParams.set("platform", webPlayer.platform);
   for (const [key, value] of Object.entries(query)) {
     url.searchParams.set(key, value);
   }

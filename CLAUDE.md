@@ -12,7 +12,7 @@ Typed client for the Apple Music web player API at `amp-api.music.apple.com`.
 
 ## Behavior to preserve
 
-- Every request asks for `format[resources]=map`. Hydration turns the map into plain objects and cuts cycles with `{ id, type, href }` stubs, so results stay JSON-serializable.
+- Every request asks for `format[resources]=map` and `platform=web`. Without a platform Apple drops every resource from a multi-fetch that asks for an editorial extend such as `plainEditorialCard`. Hydration turns the map into plain objects and cuts cycles with `{ id, type, href }` stubs, so results stay JSON-serializable.
 - Catalog `get` without `views` goes through the batcher, which merges same-tick gets into one multi-fetch. A batched id that is absent from the response is a 404, never another resource.
 - `next` links drop the original query, so pagination merges the original query with the cursor from `next`.
 - `Registry` in `src/types.ts` drives every result type. Per type: `attributes` (always sent; optional only when Apple sometimes omits it), `extended` (only with `extend`), `refs` (bare references sent by default), `defaults` (full objects sent by default), `optional` (may be absent even when included), `partial` (included items may be bare references), `singleOnly` (library includes Apple rejects on list calls) and `views` (view name to item type).

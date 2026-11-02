@@ -129,3 +129,20 @@ test("limits stop at Apple's cap for each relationship, view and search", () => 
     am.library.songs.list({ limit: 101 });
   };
 });
+
+test("nearby concerts need a geohash", () => {
+  const _check = () => {
+    am.artists.view("1", "nearby-upcoming-concerts", { geoHash: "u09t" });
+    am.artists.get("1", {
+      geoHash: "u09t",
+      views: ["nearby-upcoming-concerts"],
+    });
+    // @ts-expect-error nearby concerts need a geohash
+    am.artists.view("1", "nearby-upcoming-concerts");
+    // @ts-expect-error nearby concerts need a geohash
+    am.artists.get("1", { views: ["nearby-upcoming-concerts"] });
+    // @ts-expect-error a geohash only applies to nearby concerts
+    am.artists.get("1", { geoHash: "u09t", views: ["top-songs"] });
+    am.artists.view("1", "top-songs");
+  };
+});

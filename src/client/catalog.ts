@@ -1,5 +1,11 @@
 import type { Context } from "@/client/context";
-import type { GetOptions, PageOptions, Scope } from "@/client/options";
+import type {
+  GetOptions,
+  Located,
+  PageOptions,
+  Scope,
+  ViewArgs,
+} from "@/client/options";
 import { hydrator } from "@/internal/hydrate";
 import type { Query } from "@/internal/transport";
 import type {
@@ -27,7 +33,7 @@ export interface CatalogCollection<T extends CatalogType> {
     const V extends View<T> = never,
   >(
     id: string,
-    options?: GetOptions<T, I, F, E, V>
+    options?: GetOptions<T, I, F, E, V> & Located<V>
   ) => Promise<Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>>;
   getMany: <
     const I extends Relationship<T> = never,
@@ -36,7 +42,7 @@ export interface CatalogCollection<T extends CatalogType> {
     const V extends View<T> = never,
   >(
     ids: readonly string[],
-    options?: GetOptions<T, I, F, E, V>
+    options?: GetOptions<T, I, F, E, V> & Located<V>
   ) => Promise<(Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>)[]>;
   related: <R extends Relationship<T>>(
     id: string,
@@ -46,7 +52,7 @@ export interface CatalogCollection<T extends CatalogType> {
   view: <V extends View<T>>(
     id: string,
     view: V,
-    options?: PageOptions<ViewLimit<T, V>>
+    ...[options]: ViewArgs<V, ViewLimit<T, V>>
   ) => Promise<Page<Resource<ViewTarget<T, V>>>>;
 }
 
@@ -65,10 +71,11 @@ export const createCatalog =
       AttributeName<T>,
       Extend<T>,
       View<T>
-    >;
+    > & { geoHash?: string };
     const query = (scope: AnyGetOptions): Query => ({
       extend: scope.extend,
       fields: scope.fields?.map(String),
+      geoHashLocation: scope.geoHash,
       include: scope.include,
       l: context.language(scope),
       views: scope.views,
@@ -100,21 +107,21 @@ export const createCatalog =
     const related = async <R>(
       id: string,
       segment: string,
-      scope: PageOptions
+      scope: PageOptions & { geoHash?: string }
     ) =>
       context.page<R>({
         path: await context.catalogPath(scope, type, id, segment),
-        query: context.pageQuery(scope),
+        query: { ...context.pageQuery(scope), geoHashLocation: scope.geoHash },
       });
     return {
-      get: (id, scope = {}) => fetchOne(id, scope, "throw") as never,
-      getMany: async (ids, scope = {}) =>
+      get: (id, scope) => fetchOne(id, scope ?? {}, "throw") as never,
+      getMany: async (ids, scope) =>
         (
-          await Promise.all(ids.map((id) => fetchOne(id, scope, "skip")))
+          await Promise.all(ids.map((id) => fetchOne(id, scope ?? {}, "skip")))
         ).filter((resource) => resource !== undefined) as never,
       related: (id, relationship, scope = {}) =>
         related(id, relationship, scope),
-      view: (id, view, scope = {}) => related(id, `view/${view}`, scope),
+      view: (id, view, ...[scope]) => related(id, `view/${view}`, scope ?? {}),
     };
   };
 

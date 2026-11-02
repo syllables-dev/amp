@@ -41,6 +41,17 @@ export interface GetOptions<
   views?: readonly V[];
 }
 
+export type Located<V extends string> = "nearby-upcoming-concerts" extends V
+  ? { geoHash: string }
+  : { geoHash?: never };
+
+export type ViewArgs<
+  V extends string,
+  L extends number,
+> = "nearby-upcoming-concerts" extends V
+  ? [options: PageOptions<L> & Located<V>]
+  : [options?: PageOptions<L>];
+
 export interface LibraryOptions<
   T extends LibraryType,
   I extends Relationship<T>,

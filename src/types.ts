@@ -686,6 +686,7 @@ export interface ArtistViews {
   "live-albums": "albums";
   "more-to-hear": "stations";
   "more-to-see": "music-movies" | "uploaded-videos";
+  "nearby-upcoming-concerts": "concerts";
   playlists: "playlists";
   "radio-shows": "apple-curators";
   "similar-artists": "artists";

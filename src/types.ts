@@ -1255,6 +1255,13 @@ export interface Chart<T> extends Page<T> {
   shortName?: string;
 }
 
+export interface LyricSnippet {
+  kind: "lyric" | (string & {});
+  text: string;
+}
+
+export type LyricMatch = Song & { meta?: { snippets?: LyricSnippet[] } };
+
 export interface Suggestions<T extends ResourceType = ResourceType> {
   terms: { searchTerm: string; displayTerm: string }[];
   topResults: Resource<T>[];

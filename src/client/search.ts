@@ -11,6 +11,7 @@ import type {
 } from "@/internal/transport";
 import type {
   CamelCase,
+  LyricMatch,
   Page,
   Resource,
   SearchType,
@@ -141,5 +142,28 @@ export const createSearch = (context: Context) => {
     return document.results?.terms ?? [];
   };
 
-  return Object.assign(search, { hints, suggestions });
+  const lyrics = async (
+    term: string,
+    scope: PageOptions<UpTo<50>> = {}
+  ): Promise<Page<LyricMatch>> => {
+    const path = await context.catalogPath(scope, "search");
+    const query = {
+      ...context.pageQuery(scope),
+      term,
+      types: ["songs"],
+      with: ["serverBubbles", "lyricHighlights"],
+    };
+    return toPage(
+      context.sendMap,
+      {
+        path,
+        query,
+        select: (document: ResultsDocument<RawRelationship>) =>
+          document.results?.song,
+      },
+      await context.sendMap<ResultsDocument<RawRelationship>>({ path, query })
+    );
+  };
+
+  return Object.assign(search, { hints, lyrics, suggestions });
 };

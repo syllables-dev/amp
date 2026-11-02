@@ -642,6 +642,10 @@ export interface GenreExtended {
   chartLabel: string;
 }
 
+export interface AppleCuratorExtended extends CuratorExtended {
+  editorialVideo?: EditorialVideo;
+}
+
 export interface LibraryExtended {
   inFavorites: boolean;
 }
@@ -728,7 +732,7 @@ export interface Registry {
   "apple-curators": {
     attributes: AppleCuratorAttributes;
     defaults: never;
-    extended: CuratorExtended;
+    extended: AppleCuratorExtended;
     optional: never;
     partial: never;
     refs: "playlists";

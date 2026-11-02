@@ -38,7 +38,12 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     include: ["artists", "genres", "library", "record-labels", "tracks"],
   },
   "apple-curators": {
-    extend: ["editorialArtwork", "plainEditorialNotes", "playlistCount"],
+    extend: [
+      "editorialArtwork",
+      "editorialVideo",
+      "plainEditorialNotes",
+      "playlistCount",
+    ],
     include: ["playlists"],
   },
   artists: {

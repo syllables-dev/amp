@@ -80,8 +80,10 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     include: [
       "albums",
       "artists",
+      "audio-analysis",
       "composers",
       "credits",
+      "flexml-analysis",
       "genres",
       "library",
       "lyrics",

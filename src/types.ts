@@ -356,6 +356,78 @@ export interface MusicMovieAttributes {
   videoTraits?: string[];
 }
 
+export interface AnalysisValue {
+  beginning: number;
+  ending: number;
+  main: number;
+}
+
+export interface Tempo extends AnalysisValue {
+  percentDeviation: number;
+}
+
+export interface MusicalKey {
+  mode: "major" | "minor" | (string & {});
+  tonic: string;
+}
+
+export interface Loudness {
+  peak: number;
+  range: number;
+  value: number;
+}
+
+export interface TimeRange {
+  endInMilliseconds: number;
+  startInMilliseconds: number;
+}
+
+export interface VocalActivity extends TimeRange {
+  strength:
+    | "very-low"
+    | "low"
+    | "medium"
+    | "high"
+    | "very-high"
+    | (string & {});
+}
+
+export interface AudioAnalysisAttributes {
+  acousticness?: AnalysisValue;
+  beats: { barsInMilliseconds: number[]; beatsInMilliseconds: number[] };
+  bpm?: Tempo;
+  danceability?: AnalysisValue;
+  energy?: AnalysisValue;
+  key: { beginning?: MusicalKey; ending?: MusicalKey; main?: MusicalKey };
+  loudness: { beginning: Loudness; ending: Loudness; main: Loudness };
+  melodicness?: AnalysisValue;
+  valence?: AnalysisValue;
+  vocalActivity?: VocalActivity[];
+}
+
+export interface GainRamp {
+  gainTimeInSeconds: number[];
+  gainValue: number[];
+  timeInSeconds: number;
+}
+
+export interface EntryPoint extends GainRamp {
+  tags: string[];
+}
+
+export interface ExitPoint extends GainRamp {
+  fadeToBlack: number;
+}
+
+export interface FlexmlAnalysisAttributes {
+  arousal?: { value: number[] };
+  entryPoints: EntryPoint[];
+  exitPoints: ExitPoint[];
+  valence?: { value: number[] };
+  videoEvents: { score: number[]; timeInSeconds: number[] };
+  visualTempo: { samplingFrequency: number; value: number[] };
+}
+
 export interface LibrarySongAttributes {
   albumName: string;
   artistName: string;
@@ -468,6 +540,11 @@ export interface CuratorExtended {
   playlistCount: number;
 }
 
+export interface AudioAnalysisExtended {
+  fades: { fadeIn: TimeRange; fadeOut: TimeRange };
+  loudnessCurve: { value: number[] };
+}
+
 export interface LibraryExtended {
   inFavorites: boolean;
 }
@@ -578,6 +655,17 @@ export interface Registry {
     singleOnly: never;
     views: ArtistViews;
   };
+  "audio-analysis": {
+    attributes: AudioAnalysisAttributes;
+    defaults: never;
+    extended: AudioAnalysisExtended;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
+  };
   "credit-artists": {
     attributes: CreditArtistAttributes;
     defaults: never;
@@ -597,6 +685,17 @@ export interface Registry {
     partial: never;
     refs: "playlists";
     relationships: { playlists: "playlists" };
+    singleOnly: never;
+    views: NoViews;
+  };
+  "flexml-analysis": {
+    attributes: FlexmlAnalysisAttributes;
+    defaults: never;
+    extended: NoExtend;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
     singleOnly: never;
     views: NoViews;
   };
@@ -778,8 +877,10 @@ export interface Registry {
     relationships: {
       albums: "albums";
       artists: "artists";
+      "audio-analysis": "audio-analysis";
       composers: "artists";
       credits: "role-categories";
+      "flexml-analysis": "flexml-analysis";
       genres: "genres";
       library: "library-songs";
       lyrics: "lyrics";
@@ -841,6 +942,7 @@ export type CatalogType =
   | "albums"
   | "apple-curators"
   | "artists"
+  | "audio-analysis"
   | "curators"
   | "genres"
   | "music-videos"
@@ -851,7 +953,7 @@ export type CatalogType =
 
 export type LibraryType = Extract<ResourceType, `library-${string}`>;
 
-export type SearchType = Exclude<CatalogType, "genres">;
+export type SearchType = Exclude<CatalogType, "audio-analysis" | "genres">;
 
 export type LibrarySearchType =
   | "library-albums"
@@ -994,6 +1096,7 @@ export type AnyResource = Resource<ResourceType>;
 
 export type Album = Resource<"albums">;
 export type Song = Resource<"songs">;
+export type AudioAnalysis = Resource<"audio-analysis">;
 export type Artist = Resource<"artists">;
 export type Playlist = Resource<"playlists">;
 export type MusicVideo = Resource<"music-videos">;

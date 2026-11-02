@@ -20,6 +20,7 @@ export const createClient = (options: ClientOptions) => {
     albums: catalog("albums"),
     appleCurators: catalog("apple-curators"),
     artists: catalog("artists"),
+    audioAnalysis: catalog("audio-analysis"),
     charts: createCharts(context),
     curators: catalog("curators"),
     genres: catalog("genres"),

@@ -68,6 +68,7 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
       "editorialArtwork",
       "editorialCard",
       "editorialVideo",
+      "geoLocation",
       "plainEditorialCard",
       "plainEditorialNotes",
       "trackCount",

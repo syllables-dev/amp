@@ -57,6 +57,11 @@ interface CardContent {
   title?: string;
 }
 
+export interface ChartLocation {
+  countryCode: string;
+  name: string;
+}
+
 export interface EditorialCard extends CardContent {
   editorialNotes?: EditorialNotes;
 }
@@ -594,6 +599,7 @@ export interface PlaylistExtended {
   editorialArtwork: EditorialArtwork;
   editorialCard?: Record<string, EditorialCard>;
   editorialVideo?: EditorialVideo;
+  geoLocation?: ChartLocation;
   plainEditorialCard?: Record<string, PlainEditorialCard>;
   plainEditorialNotes?: EditorialNotes;
   trackCount: number;

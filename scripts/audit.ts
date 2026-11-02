@@ -62,11 +62,13 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
   },
   playlists: {
     extend: [
+      "artistNamesList",
       "editorialArtwork",
       "editorialVideo",
       "plainEditorialCard",
       "plainEditorialNotes",
       "trackCount",
+      "trackTypes",
       "versionHash",
     ],
     include: ["curator", "library", "tracks"],

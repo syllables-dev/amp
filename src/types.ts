@@ -532,11 +532,13 @@ export interface ArtistExtended {
 }
 
 export interface PlaylistExtended {
+  artistNamesList?: string[];
   editorialArtwork: EditorialArtwork;
   editorialVideo?: EditorialVideo;
   plainEditorialCard?: Record<string, unknown>;
   plainEditorialNotes?: EditorialNotes;
   trackCount: number;
+  trackTypes: ("music-videos" | "songs")[];
   versionHash: string;
 }
 

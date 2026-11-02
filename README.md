@@ -1,6 +1,6 @@
 # @syllables-dev/amp
 
-Typed client for the API behind the Apple Music web player (`amp-api.music.apple.com`), Zero dependencies.
+Typed client for the API behind the Apple Music web and iOS player (`amp-api.music.apple.com`), Zero dependencies.
 
 ## Install
 

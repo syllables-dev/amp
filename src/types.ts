@@ -428,6 +428,44 @@ export interface FlexmlAnalysisAttributes {
   visualTempo: { samplingFrequency: number; value: number[] };
 }
 
+export interface Ticket {
+  url: string;
+  vendor: string;
+}
+
+export interface EventDataProvider {
+  name: string;
+  url: string;
+}
+
+export interface ConcertAttributes {
+  endISODateTime: string;
+  name: string;
+  startISODateTime: string;
+  timezone: string;
+  url: string;
+}
+
+export interface GeoLocation {
+  latitude: number;
+  longitude: number;
+}
+
+export interface StructuredAddress {
+  address: string | null;
+  city: string;
+  country: string;
+  countryIsoCode: string;
+  postCode: string | null;
+  region: string | null;
+}
+
+export interface VenueAttributes {
+  geoLocation: GeoLocation;
+  name: string;
+  structuredAddress: StructuredAddress;
+}
+
 export interface LibrarySongAttributes {
   albumName: string;
   artistName: string;
@@ -568,6 +606,11 @@ export interface AudioAnalysisExtended {
   loudnessCurve: { value: number[] };
 }
 
+export interface ConcertExtended {
+  eventDataProviders: EventDataProvider[];
+  tickets: Ticket[];
+}
+
 export interface LibraryExtended {
   inFavorites: boolean;
 }
@@ -597,6 +640,7 @@ export interface AlbumViews {
 }
 
 export interface ArtistViews {
+  "all-upcoming-concerts": "concerts";
   "appears-on-albums": "albums";
   "compilation-albums": "albums";
   "featured-albums": "albums";
@@ -686,6 +730,17 @@ export interface Registry {
     partial: never;
     refs: never;
     relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
+  };
+  concerts: {
+    attributes: ConcertAttributes;
+    defaults: never;
+    extended: ConcertExtended;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: { artists: "artists"; venues: "venues" };
     singleOnly: never;
     views: NoViews;
   };
@@ -958,6 +1013,17 @@ export interface Registry {
     singleOnly: never;
     views: NoViews;
   };
+  venues: {
+    attributes: VenueAttributes;
+    defaults: never;
+    extended: NoExtend;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
+  };
 }
 
 export type ResourceType = keyof Registry;
@@ -967,6 +1033,7 @@ export type CatalogType =
   | "apple-curators"
   | "artists"
   | "audio-analysis"
+  | "concerts"
   | "curators"
   | "genres"
   | "music-videos"
@@ -977,7 +1044,10 @@ export type CatalogType =
 
 export type LibraryType = Extract<ResourceType, `library-${string}`>;
 
-export type SearchType = Exclude<CatalogType, "audio-analysis" | "genres">;
+export type SearchType = Exclude<
+  CatalogType,
+  "audio-analysis" | "concerts" | "genres"
+>;
 
 export type LibrarySearchType =
   | "library-albums"
@@ -1128,6 +1198,8 @@ export type Station = Resource<"stations">;
 export type Curator = Resource<"curators">;
 export type RecordLabel = Resource<"record-labels">;
 export type Genre = Resource<"genres">;
+export type Concert = Resource<"concerts">;
+export type Venue = Resource<"venues">;
 export type Storefront = Resource<"storefronts">;
 export type CreditCategory = Resource<"role-categories", "credit-artists">;
 export type LibrarySong = Resource<"library-songs">;

@@ -13,6 +13,7 @@ interface Batch {
 
 export const idLimits: Record<string, number> = {
   artists: 50,
+  concerts: 50,
   genres: 300,
   playlists: 50,
   songs: 300,

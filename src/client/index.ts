@@ -22,6 +22,7 @@ export const createClient = (options: ClientOptions) => {
     artists: catalog("artists"),
     audioAnalysis: catalog("audio-analysis"),
     charts: createCharts(context),
+    concerts: catalog("concerts"),
     curators: catalog("curators"),
     genres: catalog("genres"),
     library: createLibrary(context),

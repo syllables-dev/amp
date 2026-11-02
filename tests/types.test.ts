@@ -6,7 +6,9 @@ import type {
   Offer,
   Ref,
   Resource,
+  StructuredAddress,
   Tempo,
+  Ticket,
   TimeRange,
 } from "@/types";
 
@@ -157,4 +159,21 @@ test("song analysis is included and fades come from audio analysis", () => {
     // @ts-expect-error audio analysis is not searchable
     am.search("a", { types: ["audio-analysis"] });
   };
+});
+
+test("artist concerts carry venues and tickets", () => {
+  const artist = () =>
+    am.artists.get("1", { views: ["all-upcoming-concerts"] });
+  const concert = () =>
+    am.concerts.get("ce.1", { extend: ["tickets"], include: ["venues"] });
+  type Artist = Awaited<ReturnType<typeof artist>>;
+  type Concert = Awaited<ReturnType<typeof concert>>;
+  expectTypeOf<
+    Artist["views"]["allUpcomingConcerts"]["items"][number]["type"]
+  >().toEqualTypeOf<"concerts">();
+  expectTypeOf<Concert["tickets"]>().toEqualTypeOf<Ticket[]>();
+  expectTypeOf<
+    Concert["venues"][number]["structuredAddress"]
+  >().toEqualTypeOf<StructuredAddress>();
+  expectTypeOf<Concert>().not.toHaveProperty("eventDataProviders");
 });

@@ -76,6 +76,8 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
       "extendedAssetUrls",
       "lyricsExcerpt",
       "offers",
+      "spatialOffsets",
+      "supportsSmartTransitions",
     ],
     include: [
       "albums",

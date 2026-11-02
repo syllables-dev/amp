@@ -492,12 +492,29 @@ export interface AlbumExtended {
   plainEditorialNotes?: EditorialNotes;
 }
 
+export interface SpatialOffsets {
+  alignmentDurationLimitInMilliseconds: number;
+  endOffsetInMilliseconds: number;
+  isCloseMatch: boolean;
+  isLongAudio: boolean;
+  offsets: { offsetInMilliseconds: number; timeStampInMilliseconds: number }[];
+  spatialLeadingSilenceInMilliseconds: number;
+  spatialTrailingSilenceInMilliseconds: number;
+  startOffsetInMilliseconds: number;
+  stereoLeadingSilenceInMilliseconds: number;
+  stereoTrailingSilenceInMilliseconds: number;
+  timeDrift: number;
+  version: number;
+}
+
 export interface SongExtended {
   artistUrl: string;
   editorialArtwork: EditorialArtwork;
   extendedAssetUrls?: ExtendedAssetUrls;
   lyricsExcerpt?: string;
   offers: Offer[];
+  spatialOffsets?: SpatialOffsets;
+  supportsSmartTransitions: boolean;
 }
 
 export interface ArtistExtended {

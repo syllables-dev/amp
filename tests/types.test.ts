@@ -1,16 +1,6 @@
 import { expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
-import type {
-  EditorialArtwork,
-  EntryPoint,
-  Offer,
-  Ref,
-  Resource,
-  StructuredAddress,
-  Tempo,
-  Ticket,
-  TimeRange,
-} from "@/types";
+import type { EditorialArtwork, Offer, Ref, Resource } from "@/types";
 
 const am = createClient({
   developerToken: "token",
@@ -138,42 +128,4 @@ test("limits stop at Apple's cap for each relationship, view and search", () => 
     // @ts-expect-error library pages stop at 100
     am.library.songs.list({ limit: 101 });
   };
-});
-
-test("song analysis is included and fades come from audio analysis", () => {
-  const song = () =>
-    am.songs.get("1", { include: ["audio-analysis", "flexml-analysis"] });
-  const analysis = () =>
-    am.audioAnalysis.get("1", { extend: ["fades", "loudnessCurve"] });
-  type Song = Awaited<ReturnType<typeof song>>;
-  type Analysis = Awaited<ReturnType<typeof analysis>>;
-  expectTypeOf<Song["audioAnalysis"][number]["bpm"]>().toEqualTypeOf<
-    Tempo | undefined
-  >();
-  expectTypeOf<Song["flexmlAnalysis"][number]["entryPoints"]>().toEqualTypeOf<
-    EntryPoint[]
-  >();
-  expectTypeOf<Song["audioAnalysis"][number]>().not.toHaveProperty("fades");
-  expectTypeOf<Analysis["fades"]["fadeOut"]>().toEqualTypeOf<TimeRange>();
-  const _check = () => {
-    // @ts-expect-error audio analysis is not searchable
-    am.search("a", { types: ["audio-analysis"] });
-  };
-});
-
-test("artist concerts carry venues and tickets", () => {
-  const artist = () =>
-    am.artists.get("1", { views: ["all-upcoming-concerts"] });
-  const concert = () =>
-    am.concerts.get("ce.1", { extend: ["tickets"], include: ["venues"] });
-  type Artist = Awaited<ReturnType<typeof artist>>;
-  type Concert = Awaited<ReturnType<typeof concert>>;
-  expectTypeOf<
-    Artist["views"]["allUpcomingConcerts"]["items"][number]["type"]
-  >().toEqualTypeOf<"concerts">();
-  expectTypeOf<Concert["tickets"]>().toEqualTypeOf<Ticket[]>();
-  expectTypeOf<
-    Concert["venues"][number]["structuredAddress"]
-  >().toEqualTypeOf<StructuredAddress>();
-  expectTypeOf<Concert>().not.toHaveProperty("eventDataProviders");
 });

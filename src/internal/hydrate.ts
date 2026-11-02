@@ -44,8 +44,9 @@ export const hydrator = <T = AnyResource>(document: RawDocument) => {
         ])
       );
     }
-    if (raw.meta) {
-      node.meta = raw.meta;
+    const meta = raw.meta ?? ref.meta;
+    if (meta) {
+      node.meta = meta;
     }
     building.delete(key);
     built.set(key, node);

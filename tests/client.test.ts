@@ -123,6 +123,21 @@ describe("catalog gets", () => {
     expect((await api.client.songs.get("old")).id).toBe("new");
   });
 
+  test("meta on a map reference survives hydration", async () => {
+    const api = fakeApi(() => ({
+      body: {
+        resources: { songs: { "1": song("1") } },
+        results: {
+          songs: {
+            data: [{ id: "1", meta: { snippets: ["hit"] }, type: "songs" }],
+          },
+        },
+      },
+    }));
+    const results = await api.client.search("a", { types: ["songs"] });
+    expect(results.songs.items[0]?.meta).toEqual({ snippets: ["hit"] });
+  });
+
   test("cyclic map responses hydrate into serializable objects", async () => {
     const api = fakeApi(() => ({ body: albumMap }));
     const album = await api.client.albums.get("1752214909", {

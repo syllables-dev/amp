@@ -90,6 +90,7 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
       "library",
       "lyrics",
       "music-videos",
+      "raw-genres",
       "station",
     ],
   },

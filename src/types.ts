@@ -902,6 +902,7 @@ export interface Registry {
       library: "library-songs";
       lyrics: "lyrics";
       "music-videos": "music-videos";
+      "raw-genres": "genres";
       station: "stations";
     };
     singleOnly: never;

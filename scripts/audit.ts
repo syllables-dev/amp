@@ -66,6 +66,7 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     extend: [
       "artistNamesList",
       "editorialArtwork",
+      "editorialCard",
       "editorialVideo",
       "plainEditorialCard",
       "plainEditorialNotes",
@@ -101,7 +102,13 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     ],
   },
   stations: {
-    extend: ["editorialArtwork", "editorialVideo", "plainEditorialNotes"],
+    extend: [
+      "editorialArtwork",
+      "editorialCard",
+      "editorialVideo",
+      "plainEditorialCard",
+      "plainEditorialNotes",
+    ],
     include: [],
   },
 };

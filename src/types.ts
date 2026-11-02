@@ -41,10 +41,28 @@ export interface MotionVideo {
 export type EditorialVideo = Record<string, MotionVideo>;
 
 export interface EditorialNotes {
+  long?: string;
   name?: string;
   short?: string;
   standard?: string;
   tagline?: string;
+}
+
+interface CardContent {
+  display: { decorations: string[] };
+  editorialArtwork?: EditorialArtwork;
+  editorialVideo?: EditorialVideo;
+  kind: "musicSuperHero" | (string & {});
+  subtitle?: string;
+  title?: string;
+}
+
+export interface EditorialCard extends CardContent {
+  editorialNotes?: EditorialNotes;
+}
+
+export interface PlainEditorialCard extends CardContent {
+  plainEditorialNotes?: EditorialNotes;
 }
 
 export interface PlayParams<K extends string = string> {
@@ -574,8 +592,9 @@ export interface ArtistExtended {
 export interface PlaylistExtended {
   artistNamesList?: string[];
   editorialArtwork: EditorialArtwork;
+  editorialCard?: Record<string, EditorialCard>;
   editorialVideo?: EditorialVideo;
-  plainEditorialCard?: Record<string, unknown>;
+  plainEditorialCard?: Record<string, PlainEditorialCard>;
   plainEditorialNotes?: EditorialNotes;
   trackCount: number;
   trackTypes: ("music-videos" | "songs")[];
@@ -591,7 +610,9 @@ export interface MusicVideoExtended {
 
 export interface StationExtended {
   editorialArtwork: EditorialArtwork;
+  editorialCard?: Record<string, EditorialCard>;
   editorialVideo?: EditorialVideo;
+  plainEditorialCard?: Record<string, PlainEditorialCard>;
   plainEditorialNotes?: EditorialNotes;
 }
 

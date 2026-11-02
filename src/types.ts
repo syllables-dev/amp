@@ -611,6 +611,10 @@ export interface ConcertExtended {
   tickets: Ticket[];
 }
 
+export interface GenreExtended {
+  chartLabel: string;
+}
+
 export interface LibraryExtended {
   inFavorites: boolean;
 }
@@ -780,7 +784,7 @@ export interface Registry {
   genres: {
     attributes: GenreAttributes;
     defaults: never;
-    extended: NoExtend;
+    extended: GenreExtended;
     optional: never;
     partial: never;
     refs: never;

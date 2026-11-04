@@ -30,8 +30,10 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     extend: [
       "artistUrl",
       "editorialArtwork",
+      "editorialCard",
       "editorialVideo",
       "offers",
+      "plainEditorialCard",
       "plainEditorialNotes",
       "versionHash",
     ],
@@ -63,8 +65,19 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     ],
     include: ["albums", "genres", "music-videos", "playlists", "station"],
   },
+  concerts: {
+    extend: ["eventDataProviders", "tickets"],
+    include: ["artists", "playlists", "venues"],
+  },
   "music-videos": {
-    extend: ["artistUrl", "editorialArtwork", "offers", "plainEditorialNotes"],
+    extend: [
+      "artistUrl",
+      "editorialArtwork",
+      "editorialCard",
+      "offers",
+      "plainEditorialCard",
+      "plainEditorialNotes",
+    ],
     include: ["albums", "artists", "genres", "library", "songs"],
   },
   playlists: {
@@ -90,7 +103,9 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
       "lyricsExcerpt",
       "offers",
       "spatialOffsets",
+      "supportsSelfieSing",
       "supportsSmartTransitions",
+      "unitags2",
     ],
     include: [
       "albums",
@@ -117,7 +132,17 @@ const catalog: Record<string, { extend: string[]; include: string[] }> = {
     ],
     include: [],
   },
+  "uploaded-videos": {
+    extend: ["editorialCard", "plainEditorialCard"],
+    include: [],
+  },
 };
+
+const searchTypes = Object.keys(catalog).filter(
+  (type) => type !== "concerts" && type !== "uploaded-videos"
+);
+const artistViews = "all-upcoming-concerts,more-to-see";
+const artistSample = 40;
 
 const terms = [
   "love",
@@ -177,11 +202,24 @@ const collect = async () => {
       get(`/v1/catalog/${storefront}/search`, {
         limit: "25",
         term,
-        types: Object.keys(catalog).join(","),
+        types: searchTypes.join(","),
       })
     ),
+    get(`/v1/editorial/${storefront}/groupings`, {
+      extend: "editorialCard,plainEditorialCard",
+      name: "music",
+    }),
   ]);
   for (const document of await Promise.all(requests)) {
+    visit(document);
+  }
+  const artists = [...(found.get("artists") ?? [])].slice(0, artistSample);
+  const views = await Promise.all(
+    artists.map((id) =>
+      get(`/v1/catalog/us/artists/${id}`, { views: artistViews })
+    )
+  );
+  for (const document of views) {
     visit(document);
   }
   return found;

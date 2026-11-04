@@ -4,7 +4,10 @@ import type {
   EditorialArtwork,
   EditorialCard,
   Offer,
+  PersonalRecommendation,
   PlainEditorialCard,
+  RecommendationExtend,
+  RecommendationType,
   Ref,
   Resource,
   UniversalTag,
@@ -89,6 +92,30 @@ test("editorial items link out and carry cards only when extended", () => {
   expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
     Record<string, EditorialCard> | undefined
   >();
+});
+
+test("recommendation shelves type their items and per-shelf meta", () => {
+  type Shelf = PersonalRecommendation<"editorialCard">;
+  type Item = Shelf["contents"][number];
+  expectTypeOf<Item["type"]>().toEqualTypeOf<RecommendationType>();
+  expectTypeOf<NonNullable<Item["meta"]>["editorialCard"]>().toEqualTypeOf<
+    string | undefined
+  >();
+  expectTypeOf<
+    NonNullable<NonNullable<Item["meta"]>["reason"]>["stringForDisplay"]
+  >().toEqualTypeOf<string>();
+  expectTypeOf<Shelf["display"]["kind"]>().toExtend<string>();
+  expectTypeOf<
+    NonNullable<Shelf["meta"]>["cachePolicy"]["updateDate"]
+  >().toEqualTypeOf<string>();
+  expectTypeOf<
+    Extract<Item, { type: "playlists" }>["editorialCard"]
+  >().toEqualTypeOf<Record<string, EditorialCard> | undefined>();
+  expectTypeOf<"editorialCard">().toExtend<RecommendationExtend>();
+  expectTypeOf<"playlistCount">().toExtend<RecommendationExtend>();
+  expectTypeOf<PersonalRecommendation["contents"][number]>().not.toHaveProperty(
+    "editorialCard"
+  );
 });
 
 test("fields narrow both base and extended attributes", () => {

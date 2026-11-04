@@ -52,6 +52,62 @@ describe("capped relationships", () => {
     expect(api.urls).toHaveLength(1);
   });
 
+  const counted = (trackCount: number, pages: Record<string, number>) =>
+    fakeApi((url) => {
+      if (!url.pathname.endsWith("/tracks")) {
+        return {
+          body: {
+            data: [{ id: "pl.1", type: "playlists" }],
+            resources: {
+              playlists: {
+                "pl.1": {
+                  attributes: { name: "mix", trackCount },
+                  id: "pl.1",
+                  relationships: {
+                    tracks: {
+                      data: [{ id: "0", type: "songs" }],
+                      next: "/v1/catalog/hk/playlists/pl.1/tracks?offset=1",
+                    },
+                  },
+                  type: "playlists",
+                },
+              },
+            },
+          },
+        };
+      }
+      const offset = url.searchParams.get("offset") ?? "";
+      const next = pages[offset];
+      if (next === undefined) {
+        return { body: { errors: [{ code: "40403" }] }, status: 404 };
+      }
+      return {
+        body: {
+          data: [{ id: offset, type: "songs" }],
+          next: next
+            ? `/v1/catalog/hk/playlists/pl.1/tracks?offset=${next}`
+            : undefined,
+        },
+      };
+    });
+
+  test("playlist track counts load the remaining pages in parallel", async () => {
+    const api = counted(602, { "1": 0, "301": 0 });
+    const result = await api.client.playlists.get("pl.1");
+    expect(api.urls[0]?.searchParams.get("extend")).toBe("trackCount");
+    expect(
+      api.urls.slice(1).map((url) => url.searchParams.get("offset"))
+    ).toEqual(["1", "301", "601"]);
+    expect(result.tracks.map((track) => track.id)).toEqual(["0", "1", "301"]);
+    expect(result).not.toHaveProperty("trackCount");
+  });
+
+  test("an undercounted playlist still follows Apple's next link", async () => {
+    const api = counted(2, { "1": 301, "301": 0 });
+    const result = await api.client.playlists.get("pl.1");
+    expect(result.tracks.map((track) => track.id)).toEqual(["0", "1", "301"]);
+  });
+
   test("a known total loads the remaining pages in parallel", async () => {
     const api = fakeApi(
       (url) => {

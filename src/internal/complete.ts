@@ -1,3 +1,4 @@
+import { AmpError } from "@/errors";
 import { follow, remainingOffsets } from "@/internal/pages";
 import type {
   Query,
@@ -13,11 +14,44 @@ const filling = new WeakMap<RawRelationship, Promise<void>>();
 const caps: Record<string, Record<string, number> | undefined> =
   pageLimits.relationships;
 
+const counts: Record<string, Record<string, string> | undefined> = {
+  albums: { tracks: "trackCount" },
+  "library-albums": { tracks: "trackCount" },
+  playlists: { tracks: "trackCount" },
+};
+
+const countOf = (resource: RawResource, name: string) => {
+  const attribute = counts[resource.type]?.[name];
+  const value = attribute ? resource.attributes?.[attribute] : undefined;
+  return typeof value === "number" ? value : undefined;
+};
+
+const pastEnd = (error: unknown): RawDocument => {
+  if (error instanceof AmpError && error.status === 404) {
+    return {};
+  }
+  throw error;
+};
+
+const followAll = async (
+  load: (link: string) => Promise<RawDocument>,
+  next: string | null | undefined
+) => {
+  const pages: RawDocument[] = [];
+  for (let link = next; link; ) {
+    // biome-ignore lint/performance/noAwaitInLoops: without a total each page names the next
+    const page = await load(link);
+    pages.push(page);
+    link = page.next;
+  }
+  return pages;
+};
+
 const fetchRest = async (
   send: Send,
   next: string,
   loaded: number,
-  total: number | undefined,
+  total: { count: number; exact: boolean } | undefined,
   query: Query
 ) => {
   const load = (link: string, offset?: number) => {
@@ -29,19 +63,18 @@ const fetchRest = async (
     );
   };
   const size = Number(query.limit) || loaded;
-  if (total && size) {
-    return Promise.all(
-      remainingOffsets(total, loaded, size).map((offset) => load(next, offset))
-    );
+  if (!(total && size)) {
+    return followAll(load, next);
   }
-  const pages: RawDocument[] = [];
-  for (let link = next; link; ) {
-    // biome-ignore lint/performance/noAwaitInLoops: without a total each page names the next
-    const page = await load(link);
-    pages.push(page);
-    link = page.next ?? "";
+  const offsets = remainingOffsets(total.count, loaded, size);
+  if (total.exact) {
+    return Promise.all(offsets.map((offset) => load(next, offset)));
   }
-  return pages;
+  const pages = await Promise.all(
+    offsets.map((offset) => load(next, offset).catch(pastEnd))
+  );
+  const last = pages.findLast((page) => page.data?.length);
+  return [...pages, ...(await followAll(load, last?.next))];
 };
 
 const merge = (
@@ -64,6 +97,18 @@ const merge = (
   relationship.next = undefined;
 };
 
+const totalOf = (
+  resource: RawResource,
+  name: string,
+  meta: RawRelationship["meta"]
+) => {
+  if (meta?.total) {
+    return { count: meta.total, exact: true };
+  }
+  const count = countOf(resource, name);
+  return count ? { count, exact: false } : undefined;
+};
+
 export const completeRelationships = (
   send: Send,
   document: RawDocument,
@@ -79,7 +124,7 @@ export const completeRelationships = (
         }
         const pending =
           filling.get(relationship) ??
-          fetchRest(send, next, data.length, meta?.total, {
+          fetchRest(send, next, data.length, totalOf(resource, name, meta), {
             ...query,
             limit: caps[resource.type]?.[name],
           }).then(

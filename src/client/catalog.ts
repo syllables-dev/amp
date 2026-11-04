@@ -62,6 +62,10 @@ export interface SongCollection extends CatalogCollection<"songs"> {
   syllableLyrics: (id: string, options?: Scope) => Promise<string>;
 }
 
+const countExtends: Partial<Record<CatalogType, string>> = {
+  playlists: "trackCount",
+};
+
 export const createCatalog =
   (context: Context) =>
   <T extends CatalogType>(type: T): CatalogCollection<T> => {
@@ -72,9 +76,18 @@ export const createCatalog =
       Extend<T>,
       View<T>
     > & { geoHash?: string };
+    const counter = countExtends[type];
+    const addsCount = (scope: AnyGetOptions) =>
+      counter !== undefined &&
+      scope.complete !== false &&
+      !scope.extend?.some((name) => name === counter);
+    const withCount = (
+      names: readonly string[] | undefined,
+      scope: AnyGetOptions
+    ) => (counter && addsCount(scope) ? [...(names ?? []), counter] : names);
     const query = (scope: AnyGetOptions): Query => ({
-      extend: scope.extend,
-      fields: scope.fields?.map(String),
+      extend: withCount(scope.extend, scope),
+      fields: scope.fields && withCount(scope.fields.map(String), scope),
       geoHashLocation: scope.geoHash,
       include: scope.include,
       l: context.language(scope),
@@ -98,7 +111,15 @@ export const createCatalog =
           );
       const ref = context.locate(document, type, id);
       if (ref) {
-        return context.expand<Resource<T, Defaults<T>>>(document, ref, scope);
+        const resource = await context.expand<Resource<T, Defaults<T>>>(
+          document,
+          ref,
+          scope
+        );
+        if (counter && addsCount(scope)) {
+          delete (resource as Record<string, unknown>)[counter];
+        }
+        return resource;
       }
       if (missing === "throw") {
         throw context.notFound(type, id);

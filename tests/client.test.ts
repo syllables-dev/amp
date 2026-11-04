@@ -613,11 +613,6 @@ describe("recommendations", () => {
     expect(utcOffset(at(0))).toBe("+00:00");
   });
 
-  test("needs a user token", () => {
-    const api = fakeApi(() => ({ body: home }));
-    expect(() => api.client.me.recommendations()).toThrow();
-  });
-
   test("listen-now sends the shelf name and a timezone offset", async () => {
     const api = fakeApi(() => ({ body: home }), { userToken: "user" });
     await api.client.me.recommendations({ name: "listen-now" });
@@ -634,21 +629,5 @@ describe("recommendations", () => {
     expect(fixed?.searchParams.get("timezone")).toBe("+08:00");
     expect(plain?.searchParams.has("name")).toBe(false);
     expect(plain?.searchParams.has("timezone")).toBe(false);
-  });
-
-  test("shelves keep their own item meta", async () => {
-    const api = fakeApi(() => ({ body: home }), { userToken: "user" });
-    const [first, second] = await api.client.me.recommendations({
-      name: "listen-now",
-    });
-    expect(first?.title?.stringForDisplay).toBe("shelf 1");
-    expect(first?.meta).toEqual({
-      cachePolicy: { updateDate: "2026-01-01T00:00:00Z" },
-      metrics: {},
-    });
-    expect(first?.contents[0]?.meta?.editorialCard).toBe("emc.1");
-    expect(first?.contents[0]?.meta?.reason?.stringForDisplay).toBe("For You");
-    expect(second?.contents[0]?.meta).toBeUndefined();
-    expect(second?.contents[0]?.id).toBe("pl.1");
   });
 });

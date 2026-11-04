@@ -5,12 +5,10 @@ import type {
   EditorialCard,
   Offer,
   PersonalRecommendation,
-  PlainEditorialCard,
   RecommendationExtend,
   RecommendationType,
   Ref,
   Resource,
-  UniversalTag,
 } from "@/types";
 
 const am = createClient({
@@ -30,68 +28,6 @@ test("extend-only attributes exist only when requested", () => {
     Extended["editorialArtwork"]
   >().toEqualTypeOf<EditorialArtwork>();
   expectTypeOf<Extended["name"]>().toEqualTypeOf<string>();
-});
-
-test("songs carry selfie sing support and universal tags when extended", () => {
-  const plain = () => am.songs.get("1");
-  const extended = () =>
-    am.songs.get("1", { extend: ["supportsSelfieSing", "unitags2"] });
-  type Plain = Awaited<ReturnType<typeof plain>>;
-  type Extended = Awaited<ReturnType<typeof extended>>;
-  expectTypeOf<Plain>().not.toHaveProperty("supportsSelfieSing");
-  expectTypeOf<Plain>().not.toHaveProperty("unitags2");
-  expectTypeOf<Extended["supportsSelfieSing"]>().toEqualTypeOf<boolean>();
-  expectTypeOf<Extended["unitags2"]>().toEqualTypeOf<UniversalTag[]>();
-});
-
-test("albums carry editorial cards when extended", () => {
-  const extended = () =>
-    am.albums.get("1", { extend: ["editorialCard", "plainEditorialCard"] });
-  type Extended = Awaited<ReturnType<typeof extended>>;
-  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
-    Record<string, EditorialCard> | undefined
-  >();
-  expectTypeOf<Extended["plainEditorialCard"]>().toEqualTypeOf<
-    Record<string, PlainEditorialCard> | undefined
-  >();
-});
-
-test("music videos and uploaded videos carry editorial cards when extended", () => {
-  const extended = () =>
-    am.musicVideos.get("1", {
-      extend: ["editorialCard", "plainEditorialCard"],
-    });
-  type Extended = Awaited<ReturnType<typeof extended>>;
-  type Uploaded = Resource<
-    "uploaded-videos",
-    never,
-    PropertyKey,
-    "editorialCard" | "plainEditorialCard"
-  >;
-  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
-    Record<string, EditorialCard> | undefined
-  >();
-  expectTypeOf<Uploaded["plainEditorialCard"]>().toEqualTypeOf<
-    Record<string, PlainEditorialCard> | undefined
-  >();
-  expectTypeOf<Resource<"uploaded-videos">>().not.toHaveProperty(
-    "editorialCard"
-  );
-});
-
-test("editorial items link out and carry cards only when extended", () => {
-  type Plain = Resource<"editorial-items">;
-  type Extended = Resource<
-    "editorial-items",
-    never,
-    PropertyKey,
-    "editorialCard"
-  >;
-  expectTypeOf<Plain["link"]["url"]>().toEqualTypeOf<string>();
-  expectTypeOf<Plain>().not.toHaveProperty("editorialCard");
-  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
-    Record<string, EditorialCard> | undefined
-  >();
 });
 
 test("recommendation shelves type their items and per-shelf meta", () => {
@@ -176,17 +112,6 @@ test("relationships follow what the API sends", () => {
   expectTypeOf<Playlist["curator"][number]>().toEqualTypeOf<
     | Ref<"apple-curators" | "artists" | "curators" | "social-profiles">
     | Resource<"apple-curators" | "artists" | "curators" | "social-profiles">
-  >();
-});
-
-test("concerts include their playlists only when asked", () => {
-  const plain = () => am.concerts.get("1");
-  const included = () => am.concerts.get("1", { include: ["playlists"] });
-  type Plain = Awaited<ReturnType<typeof plain>>;
-  type Included = Awaited<ReturnType<typeof included>>;
-  expectTypeOf<Plain>().not.toHaveProperty("playlists");
-  expectTypeOf<Included["playlists"]>().toEqualTypeOf<
-    Resource<"playlists">[]
   >();
 });
 

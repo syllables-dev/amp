@@ -796,7 +796,11 @@ export interface Registry {
     optional: never;
     partial: never;
     refs: never;
-    relationships: { artists: "artists"; venues: "venues" };
+    relationships: {
+      artists: "artists";
+      playlists: "playlists";
+      venues: "venues";
+    };
     singleOnly: never;
     views: NoViews;
   };

@@ -121,6 +121,17 @@ test("relationships follow what the API sends", () => {
   >();
 });
 
+test("concerts include their playlists only when asked", () => {
+  const plain = () => am.concerts.get("1");
+  const included = () => am.concerts.get("1", { include: ["playlists"] });
+  type Plain = Awaited<ReturnType<typeof plain>>;
+  type Included = Awaited<ReturnType<typeof included>>;
+  expectTypeOf<Plain>().not.toHaveProperty("playlists");
+  expectTypeOf<Included["playlists"]>().toEqualTypeOf<
+    Resource<"playlists">[]
+  >();
+});
+
 test("library lists reject includes that need a single fetch", () => {
   const _check = () => {
     am.library.albums.get("1", { include: ["tracks"] });

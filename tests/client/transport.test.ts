@@ -54,6 +54,24 @@ describe("transport", () => {
     expect(api.urls).toHaveLength(1);
   });
 
+  test("list params in any order share one request, ids keep theirs", async () => {
+    const api = fakeApi((url) => ({
+      body: {
+        data: (url.searchParams.get("ids[songs]") ?? "")
+          .split(",")
+          .map((id) => ({ attributes: { name: id }, id, type: "songs" })),
+      },
+    }));
+    await Promise.all([
+      api.client.songs.get("2", { extend: ["offers", "artistUrl"] }),
+      api.client.songs.get("1", { extend: ["artistUrl", "offers"] }),
+    ]);
+    await api.client.songs.get("2", { extend: ["artistUrl", "offers"] });
+    expect(api.urls).toHaveLength(1);
+    expect(api.urls[0]?.searchParams.get("extend")).toBe("artistUrl,offers");
+    expect(api.urls[0]?.searchParams.get("ids[songs]")).toBe("2,1");
+  });
+
   test("no-store responses are not cached", async () => {
     const api = fakeApi(() => ({
       body: { results: { terms: ["a"] } },
@@ -116,7 +134,7 @@ describe("raw requests", () => {
     });
     expect(api.urls[0]?.pathname).toBe("/v1/catalog/hk/songs/42");
     expect(api.urls[0]?.searchParams.get("extend")).toBe(
-      "offers,lyricsExcerpt"
+      "lyricsExcerpt,offers"
     );
   });
 });

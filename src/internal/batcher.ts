@@ -4,6 +4,7 @@ import {
   type RawDocument,
   remember,
   type Send,
+  serialize,
 } from "@/internal/transport";
 
 interface Batch {
@@ -52,7 +53,7 @@ export const createBatcher = (send: Send) => {
   };
 
   return async (storefront: string, type: string, id: string, query: Query) => {
-    const key = `${storefront}\n${type}\n${JSON.stringify(query, Object.keys(query).sort())}`;
+    const key = `${storefront}\n${type}\n${serialize(query)}`;
     const slot = `${key}\n${id}`;
     const remembered = known.get(slot);
     if (remembered && isFresh(remembered)) {

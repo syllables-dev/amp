@@ -21,7 +21,7 @@ describe("lyric search", () => {
     }));
     const page = await api.client.search.lyrics("a");
     expect(api.urls[0]?.searchParams.get("with")).toBe(
-      "serverBubbles,lyricHighlights"
+      "lyricHighlights,serverBubbles"
     );
     expect(page.items[0]?.name).toBe("song 1");
     expect(page.items[0]?.meta?.snippets?.[0]?.text).toBe("<mark>a</mark>");

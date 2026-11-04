@@ -62,14 +62,20 @@ export type Send = <D extends RawDocument = RawDocument>(
   request: Request
 ) => Promise<D>;
 
-const serialize = (query: Query = {}) => {
+const listValue = (key: string, values: readonly string[]) =>
+  (key.startsWith("ids") ? values : values.toSorted()).join(",");
+
+export const serialize = (query: Query = {}) => {
   const params = new URLSearchParams();
   for (const key of Object.keys(query).sort()) {
     const value = query[key];
     if (value === undefined || value === null) {
       continue;
     }
-    params.set(key, Array.isArray(value) ? value.join(",") : String(value));
+    params.set(
+      key,
+      Array.isArray(value) ? listValue(key, value) : String(value)
+    );
   }
   return params.toString();
 };

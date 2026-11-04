@@ -1,22 +1,31 @@
 import type { RawDocument, RawResource } from "@/internal/transport";
 import type { AnyResource } from "@/types";
 
+interface Hydrated {
+  meta?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export const camelCase = (name: string) =>
   name.replace(/-([a-z0-9])/g, (_match, letter: string) =>
     letter.toUpperCase()
   );
 
+const withMeta = (node: Hydrated, meta?: Record<string, unknown>): Hydrated =>
+  meta ? { ...node, meta: { ...node.meta, ...meta } } : node;
+
 export const hydrator = <T = AnyResource>(document: RawDocument) => {
-  const built = new Map<string, Record<string, unknown>>();
+  const built = new Map<string, Hydrated>();
   const building = new Set<string>();
 
-  const build = (ref: RawResource): Record<string, unknown> => {
+  const build = (ref: RawResource): Hydrated => {
     const key = `${ref.type}/${ref.id}`;
     const existing = built.get(key);
     if (existing) {
-      return existing;
+      return withMeta(existing, ref.meta);
     }
-    const raw = document.resources?.[ref.type]?.[ref.id] ?? ref;
+    const entry = document.resources?.[ref.type]?.[ref.id];
+    const raw = entry ?? ref;
     const stub = { href: raw.href, id: raw.id, type: raw.type };
     if (
       building.has(key) ||
@@ -25,7 +34,7 @@ export const hydrator = <T = AnyResource>(document: RawDocument) => {
       return stub;
     }
     building.add(key);
-    const node: Record<string, unknown> = { ...stub, ...raw.attributes };
+    const node: Hydrated = { ...stub, ...raw.attributes };
     for (const [name, relationship] of Object.entries(
       raw.relationships ?? {}
     )) {
@@ -44,13 +53,12 @@ export const hydrator = <T = AnyResource>(document: RawDocument) => {
         ])
       );
     }
-    const meta = raw.meta ?? ref.meta;
-    if (meta) {
-      node.meta = meta;
+    if (entry?.meta) {
+      node.meta = entry.meta;
     }
     building.delete(key);
     built.set(key, node);
-    return node;
+    return withMeta(node, ref.meta);
   };
 
   return (ref: RawResource) => build(ref) as T;

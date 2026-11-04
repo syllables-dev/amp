@@ -138,6 +138,52 @@ describe("catalog gets", () => {
     expect(results.songs.items[0]?.meta).toEqual({ snippets: ["hit"] });
   });
 
+  test("each map reference keeps its own meta", async () => {
+    const album = (id: string, extra: object = {}) => ({
+      attributes: { name: `album ${id}` },
+      id,
+      type: "albums",
+      ...extra,
+    });
+    const api = fakeApi(() => ({
+      body: {
+        data: [{ id: "1", type: "albums" }],
+        resources: {
+          albums: {
+            "1": album("1", {
+              views: {
+                "more-by-artist": {
+                  data: [
+                    { id: "2", meta: { reason: "new" }, type: "albums" },
+                    { id: "3", type: "albums" },
+                  ],
+                },
+                "other-versions": {
+                  data: [
+                    { id: "2", type: "albums" },
+                    { id: "3", meta: { reason: "remaster" }, type: "albums" },
+                  ],
+                },
+              },
+            }),
+            "2": album("2"),
+            "3": album("3", { meta: { source: "catalog" } }),
+          },
+        },
+      },
+    }));
+    const { views } = await api.client.albums.get("1", {
+      views: ["more-by-artist", "other-versions"],
+    });
+    const [byArtistNew, byArtistOld] = views.moreByArtist.items;
+    const [versionNew, versionOld] = views.otherVersions.items;
+    expect(byArtistNew?.meta).toEqual({ reason: "new" });
+    expect(versionNew?.meta).toBeUndefined();
+    expect(byArtistOld?.meta).toEqual({ source: "catalog" });
+    expect(versionOld?.meta).toEqual({ reason: "remaster", source: "catalog" });
+    expect(byArtistNew?.name).toBe("album 2");
+  });
+
   test("cyclic map responses hydrate into serializable objects", async () => {
     const api = fakeApi(() => ({ body: albumMap }));
     const album = await api.client.albums.get("1752214909", {

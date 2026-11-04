@@ -1,6 +1,12 @@
 import { expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
-import type { EditorialArtwork, Offer, Ref, Resource } from "@/types";
+import type {
+  EditorialArtwork,
+  Offer,
+  Ref,
+  Resource,
+  UniversalTag,
+} from "@/types";
 
 const am = createClient({
   developerToken: "token",
@@ -19,6 +25,18 @@ test("extend-only attributes exist only when requested", () => {
     Extended["editorialArtwork"]
   >().toEqualTypeOf<EditorialArtwork>();
   expectTypeOf<Extended["name"]>().toEqualTypeOf<string>();
+});
+
+test("songs carry selfie sing support and universal tags when extended", () => {
+  const plain = () => am.songs.get("1");
+  const extended = () =>
+    am.songs.get("1", { extend: ["supportsSelfieSing", "unitags2"] });
+  type Plain = Awaited<ReturnType<typeof plain>>;
+  type Extended = Awaited<ReturnType<typeof extended>>;
+  expectTypeOf<Plain>().not.toHaveProperty("supportsSelfieSing");
+  expectTypeOf<Plain>().not.toHaveProperty("unitags2");
+  expectTypeOf<Extended["supportsSelfieSing"]>().toEqualTypeOf<boolean>();
+  expectTypeOf<Extended["unitags2"]>().toEqualTypeOf<UniversalTag[]>();
 });
 
 test("fields narrow both base and extended attributes", () => {

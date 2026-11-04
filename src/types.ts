@@ -569,6 +569,17 @@ export interface SpatialOffsets {
   version: number;
 }
 
+export interface UniversalTag {
+  namespace:
+    | "EditorialEra"
+    | "EditorialEvents"
+    | "EditorialGenres"
+    | "EditorialMoodsAndActivities"
+    | (string & {});
+  score: number;
+  tag: string;
+}
+
 export interface SongExtended {
   artistUrl: string;
   editorialArtwork: EditorialArtwork;
@@ -576,7 +587,9 @@ export interface SongExtended {
   lyricsExcerpt?: string;
   offers: Offer[];
   spatialOffsets?: SpatialOffsets;
+  supportsSelfieSing: boolean;
   supportsSmartTransitions: boolean;
+  unitags2: UniversalTag[];
 }
 
 export interface ArtistExtended {

@@ -76,6 +76,21 @@ test("music videos and uploaded videos carry editorial cards when extended", () 
   );
 });
 
+test("editorial items link out and carry cards only when extended", () => {
+  type Plain = Resource<"editorial-items">;
+  type Extended = Resource<
+    "editorial-items",
+    never,
+    PropertyKey,
+    "editorialCard"
+  >;
+  expectTypeOf<Plain["link"]["url"]>().toEqualTypeOf<string>();
+  expectTypeOf<Plain>().not.toHaveProperty("editorialCard");
+  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
+    Record<string, EditorialCard> | undefined
+  >();
+});
+
 test("fields narrow both base and extended attributes", () => {
   const sparse = () =>
     am.albums.get("1", { extend: ["offers"], fields: ["name"] });

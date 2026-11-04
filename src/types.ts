@@ -379,6 +379,19 @@ export interface MusicMovieAttributes {
   videoTraits?: string[];
 }
 
+export interface EditorialLink {
+  feature: "external" | (string & {});
+  target: "external" | (string & {});
+  url: string;
+}
+
+export interface EditorialItemAttributes {
+  editorialArtwork: EditorialArtwork;
+  editorialNotes: EditorialNotes;
+  link: EditorialLink;
+  url: string;
+}
+
 export interface AnalysisValue {
   beginning: number;
   ending: number;
@@ -826,6 +839,17 @@ export interface Registry {
     singleOnly: never;
     views: NoViews;
   };
+  "editorial-items": {
+    attributes: EditorialItemAttributes;
+    defaults: never;
+    extended: EditorialCards;
+    optional: never;
+    partial: never;
+    refs: never;
+    relationships: NoRelationships;
+    singleOnly: never;
+    views: NoViews;
+  };
   "flexml-analysis": {
     attributes: FlexmlAnalysisAttributes;
     defaults: never;
@@ -1259,6 +1283,7 @@ export type Curator = Resource<"curators">;
 export type RecordLabel = Resource<"record-labels">;
 export type Genre = Resource<"genres">;
 export type Concert = Resource<"concerts">;
+export type EditorialItem = Resource<"editorial-items">;
 export type Venue = Resource<"venues">;
 export type Storefront = Resource<"storefronts">;
 export type CreditCategory = Resource<"role-categories", "credit-artists">;

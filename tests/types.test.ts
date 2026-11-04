@@ -53,6 +53,29 @@ test("albums carry editorial cards when extended", () => {
   >();
 });
 
+test("music videos and uploaded videos carry editorial cards when extended", () => {
+  const extended = () =>
+    am.musicVideos.get("1", {
+      extend: ["editorialCard", "plainEditorialCard"],
+    });
+  type Extended = Awaited<ReturnType<typeof extended>>;
+  type Uploaded = Resource<
+    "uploaded-videos",
+    never,
+    PropertyKey,
+    "editorialCard" | "plainEditorialCard"
+  >;
+  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
+    Record<string, EditorialCard> | undefined
+  >();
+  expectTypeOf<Uploaded["plainEditorialCard"]>().toEqualTypeOf<
+    Record<string, PlainEditorialCard> | undefined
+  >();
+  expectTypeOf<Resource<"uploaded-videos">>().not.toHaveProperty(
+    "editorialCard"
+  );
+});
+
 test("fields narrow both base and extended attributes", () => {
   const sparse = () =>
     am.albums.get("1", { extend: ["offers"], fields: ["name"] });

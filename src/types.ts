@@ -622,7 +622,12 @@ export interface PlaylistExtended {
   versionHash: string;
 }
 
-export interface MusicVideoExtended {
+export interface EditorialCards {
+  editorialCard?: Record<string, EditorialCard>;
+  plainEditorialCard?: Record<string, PlainEditorialCard>;
+}
+
+export interface MusicVideoExtended extends EditorialCards {
   artistUrl: string;
   editorialArtwork: EditorialArtwork;
   offers: Offer[];
@@ -1056,7 +1061,7 @@ export interface Registry {
   "uploaded-videos": {
     attributes: UploadedVideoAttributes;
     defaults: never;
-    extended: NoExtend;
+    extended: EditorialCards;
     optional: never;
     partial: never;
     refs: never;

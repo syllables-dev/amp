@@ -3,6 +3,7 @@ import type {
   CatalogType,
   Extend,
   LibraryType,
+  RecommendationExtend,
   Relationship,
   Token,
   UpTo,
@@ -21,6 +22,13 @@ export interface ClientOptions {
 export interface Scope {
   language?: string;
   storefront?: string;
+}
+
+export interface RecommendationOptions<E extends RecommendationExtend> {
+  extend?: readonly E[];
+  language?: string;
+  name?: "listen-now" | "search-landing";
+  timezone?: string;
 }
 
 export interface PageOptions<L extends number = number> extends Scope {

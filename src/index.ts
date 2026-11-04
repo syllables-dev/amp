@@ -15,6 +15,7 @@ export type {
   LibraryOptions,
   LibrarySort,
   PageOptions,
+  RecommendationOptions,
   Scope,
 } from "@/client/options";
 export type { SearchResults } from "@/client/search";

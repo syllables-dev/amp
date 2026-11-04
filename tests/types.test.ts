@@ -118,6 +118,22 @@ test("recommendation shelves type their items and per-shelf meta", () => {
   );
 });
 
+test("recommendations type extends across shelf items", () => {
+  const extended = () =>
+    am.me.recommendations({ extend: ["editorialCard"], name: "listen-now" });
+  type Shelves = Awaited<ReturnType<typeof extended>>;
+  type Item = Shelves[number]["contents"][number];
+  expectTypeOf<
+    Extract<Item, { type: "albums" }>["editorialCard"]
+  >().toEqualTypeOf<Record<string, EditorialCard> | undefined>();
+  const _check = () => {
+    // @ts-expect-error control-center needs parameters amp does not send
+    am.me.recommendations({ name: "control-center" });
+    // @ts-expect-error lyricsExcerpt is not on any shelf item
+    am.me.recommendations({ extend: ["lyricsExcerpt"] });
+  };
+});
+
 test("fields narrow both base and extended attributes", () => {
   const sparse = () =>
     am.albums.get("1", { extend: ["offers"], fields: ["name"] });

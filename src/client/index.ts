@@ -3,6 +3,7 @@ import { createCharts } from "@/client/charts";
 import { createContext } from "@/client/context";
 import { createLibrary } from "@/client/library";
 import type { ClientOptions, PageOptions, Scope } from "@/client/options";
+import { createRecommendations } from "@/client/recommendations";
 import { createRequest } from "@/client/request";
 import { createSearch } from "@/client/search";
 import { paginate } from "@/internal/pages";
@@ -27,6 +28,7 @@ export const createClient = (options: ClientOptions) => {
     genres: catalog("genres"),
     library: createLibrary(context),
     me: {
+      recommendations: createRecommendations(context),
       storefront: async () => {
         context.requireUser();
         const document = await context.send({ path: "/v1/me/storefront" });

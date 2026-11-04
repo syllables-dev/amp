@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { utcOffset } from "@/client/recommendations";
 import { AmpError, createClient } from "@/index";
 import { version } from "../package.json";
 import albumMap from "./fixtures/album-map.json";
@@ -559,5 +560,95 @@ describe("raw requests", () => {
     expect(api.urls[0]?.searchParams.get("extend")).toBe(
       "offers,lyricsExcerpt"
     );
+  });
+});
+
+describe("recommendations", () => {
+  const shelf = (id: string, contents: object[]) => ({
+    attributes: {
+      display: { decorations: [], kind: "MusicCoverShelf" },
+      hasSeeAll: false,
+      isGroupRecommendation: false,
+      kind: "music-recommendations",
+      nextUpdateDate: "2026-01-01T00:00:00Z",
+      resourceTypes: ["playlists"],
+      title: { stringForDisplay: `shelf ${id}` },
+      version: 1,
+    },
+    id,
+    meta: { cachePolicy: { updateDate: "2026-01-01T00:00:00Z" }, metrics: {} },
+    relationships: { contents: { data: contents, href: `/shelf/${id}` } },
+    type: "personal-recommendation",
+  });
+  const home = {
+    data: [
+      { id: "1", type: "personal-recommendation" },
+      { id: "2", type: "personal-recommendation" },
+    ],
+    resources: {
+      "personal-recommendation": {
+        "1": shelf("1", [
+          {
+            id: "pl.1",
+            meta: {
+              editorialCard: "emc.1",
+              reason: { stringForDisplay: "For You" },
+            },
+            type: "playlists",
+          },
+        ]),
+        "2": shelf("2", [{ id: "pl.1", type: "playlists" }]),
+      },
+      playlists: {
+        "pl.1": { attributes: { name: "mix" }, id: "pl.1", type: "playlists" },
+      },
+    },
+  };
+
+  test("offsets are formatted as ISO 8601", () => {
+    const at = (minutes: number) =>
+      ({ getTimezoneOffset: () => minutes }) as unknown as Date;
+    expect(utcOffset(at(480))).toBe("-08:00");
+    expect(utcOffset(at(-330))).toBe("+05:30");
+    expect(utcOffset(at(0))).toBe("+00:00");
+  });
+
+  test("needs a user token", () => {
+    const api = fakeApi(() => ({ body: home }));
+    expect(() => api.client.me.recommendations()).toThrow();
+  });
+
+  test("listen-now sends the shelf name and a timezone offset", async () => {
+    const api = fakeApi(() => ({ body: home }), { userToken: "user" });
+    await api.client.me.recommendations({ name: "listen-now" });
+    await api.client.me.recommendations({
+      name: "listen-now",
+      timezone: "+08:00",
+    });
+    await api.client.me.recommendations();
+    const [local, fixed, plain] = api.urls;
+    expect(local?.pathname).toBe("/v1/me/recommendations");
+    expect(local?.searchParams.get("name")).toBe("listen-now");
+    expect(local?.searchParams.get("timezone")).toBe(utcOffset());
+    expect(local?.searchParams.get("format[resources]")).toBe("map");
+    expect(fixed?.searchParams.get("timezone")).toBe("+08:00");
+    expect(plain?.searchParams.has("name")).toBe(false);
+    expect(plain?.searchParams.has("timezone")).toBe(false);
+  });
+
+  test("shelves keep their own item meta", async () => {
+    const api = fakeApi(() => ({ body: home }), { userToken: "user" });
+    const [first, second] = await api.client.me.recommendations({
+      name: "listen-now",
+    });
+    expect(first?.title?.stringForDisplay).toBe("shelf 1");
+    expect(first?.meta).toEqual({
+      cachePolicy: { updateDate: "2026-01-01T00:00:00Z" },
+      metrics: {},
+    });
+    expect(first?.contents[0]?.meta?.editorialCard).toBe("emc.1");
+    expect(first?.contents[0]?.meta?.reason?.stringForDisplay).toBe("For You");
+    expect(second?.contents[0]?.meta).toBeUndefined();
+    expect(second?.contents[0]?.id).toBe("pl.1");
   });
 });

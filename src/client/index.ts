@@ -7,7 +7,7 @@ import { createRecommendations } from "@/client/recommendations";
 import { createRequest } from "@/client/request";
 import { createSearch } from "@/client/search";
 import { paginate } from "@/internal/pages";
-import type { Storefront } from "@/types";
+import type { Storefront } from "@/types/resources/storefronts";
 
 export const createClient = (options: ClientOptions) => {
   if (!options.developerToken) {

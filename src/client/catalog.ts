@@ -8,10 +8,9 @@ import type {
 } from "@/client/options";
 import { hydrator } from "@/internal/hydrate";
 import type { Query } from "@/internal/transport";
+import type { CatalogType } from "@/types/registry";
 import type {
   AttributeName,
-  CatalogType,
-  CreditCategory,
   Defaults,
   Extend,
   Page,
@@ -23,7 +22,8 @@ import type {
   ViewLimit,
   ViewTarget,
   WithViews,
-} from "@/types";
+} from "@/types/resource";
+import type { CreditCategory } from "@/types/resources/role-categories";
 
 export interface CatalogCollection<T extends CatalogType> {
   get: <

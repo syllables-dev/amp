@@ -3,7 +3,8 @@ import type { PageOptions } from "@/client/options";
 import { camelCase } from "@/internal/hydrate";
 import { toPage } from "@/internal/pages";
 import type { RawRelationship } from "@/internal/transport";
-import type { CamelCase, Chart, ChartType, Resource, UpTo } from "@/types";
+import type { ChartType } from "@/types/registry";
+import type { CamelCase, Chart, Resource, UpTo } from "@/types/resource";
 
 export type ChartExtra = "cityCharts" | "dailyGlobalTopCharts";
 

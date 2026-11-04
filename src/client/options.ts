@@ -1,14 +1,13 @@
+import type { Token } from "@/types/common";
+import type { CatalogType, LibraryType } from "@/types/registry";
 import type {
   AttributeName,
-  CatalogType,
   Extend,
-  LibraryType,
-  RecommendationExtend,
   Relationship,
-  Token,
   UpTo,
   View,
-} from "@/types";
+} from "@/types/resource";
+import type { RecommendationExtend } from "@/types/resources/personal-recommendation";
 
 export interface ClientOptions {
   cache?: boolean;

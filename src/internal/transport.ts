@@ -1,6 +1,6 @@
 import { hosts, userAgent, webPlayer } from "@/config";
 import { AmpError, type ApiError } from "@/errors";
-import type { Token } from "@/types";
+import type { Token } from "@/types/common";
 
 export type QueryValue =
   | string

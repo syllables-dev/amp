@@ -8,19 +8,21 @@ import { searchPages } from "@/client/search";
 import { camelCase } from "@/internal/hydrate";
 import { walk } from "@/internal/pages";
 import type {
-  CamelCase,
-  Extend,
   LibrarySearchType,
   LibraryType,
+  RecentlyAddedType,
+} from "@/types/registry";
+import type {
+  CamelCase,
+  Extend,
   Listable,
   Page,
-  RecentlyAddedType,
   Relationship,
   RelationshipLimit,
   Resource,
   Target,
   UpTo,
-} from "@/types";
+} from "@/types/resource";
 
 export interface LibraryCollection<T extends LibraryType> {
   all: <const I extends Listable<T> = never, const E extends Extend<T> = never>(

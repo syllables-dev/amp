@@ -6,7 +6,7 @@ import type {
   RawRelationship,
   Send,
 } from "@/internal/transport";
-import type { Page } from "@/types";
+import type { Page } from "@/types/resource";
 
 export interface PageSource<D extends RawDocument> {
   path: string;

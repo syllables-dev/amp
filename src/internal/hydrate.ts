@@ -1,5 +1,5 @@
 import type { RawDocument, RawResource } from "@/internal/transport";
-import type { AnyResource } from "@/types";
+import type { AnyResource } from "@/types/resource";
 
 interface Hydrated {
   meta?: Record<string, unknown>;

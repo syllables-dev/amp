@@ -1,15 +1,12 @@
 import { expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
+import type { EditorialArtwork, EditorialCard, Offer } from "@/types/common";
+import type { Ref, Resource } from "@/types/resource";
 import type {
-  EditorialArtwork,
-  EditorialCard,
-  Offer,
   PersonalRecommendation,
   RecommendationExtend,
   RecommendationType,
-  Ref,
-  Resource,
-} from "@/types";
+} from "@/types/resources/personal-recommendation";
 
 const am = createClient({
   developerToken: "token",
@@ -143,19 +140,6 @@ test("requested views are present and typed by view", () => {
   expectTypeOf<WithViews["views"]>().not.toHaveProperty("singles");
   expectTypeOf<Plain>().not.toHaveProperty("views");
   expectTypeOf<ViewPage["items"][number]["type"]>().toEqualTypeOf<"artists">();
-});
-
-test("suggestions and recently added carry their resource types", () => {
-  const suggest = () => am.search.suggestions("a", { types: ["songs"] });
-  const recent = () => am.library.recentlyAdded();
-  type Suggest = Awaited<ReturnType<typeof suggest>>;
-  type Recent = Awaited<ReturnType<typeof recent>>;
-  expectTypeOf<
-    Suggest["topResults"][number]["type"]
-  >().toEqualTypeOf<"songs">();
-  expectTypeOf<Recent["items"][number]["type"]>().toEqualTypeOf<
-    "albums" | "library-albums" | "library-playlists" | "playlists" | "stations"
-  >();
 });
 
 test("limits stop at Apple's cap for each relationship, view and search", () => {

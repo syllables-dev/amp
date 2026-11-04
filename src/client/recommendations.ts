@@ -1,7 +1,10 @@
 import type { Context } from "@/client/context";
 import type { RecommendationOptions } from "@/client/options";
 import { hydrator } from "@/internal/hydrate";
-import type { PersonalRecommendation, RecommendationExtend } from "@/types";
+import type {
+  PersonalRecommendation,
+  RecommendationExtend,
+} from "@/types/resources/personal-recommendation";
 
 export const utcOffset = (date = new Date()) => {
   const minutes = -date.getTimezoneOffset();

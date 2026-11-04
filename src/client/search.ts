@@ -9,15 +9,15 @@ import type {
   RawRelationship,
   RawResource,
 } from "@/internal/transport";
+import type { SearchType } from "@/types/registry";
 import type {
   CamelCase,
-  LyricMatch,
   Page,
   Resource,
-  SearchType,
   Suggestions,
   UpTo,
-} from "@/types";
+} from "@/types/resource";
+import type { LyricMatch } from "@/types/resources/songs";
 
 export type SearchResults<T extends SearchType> = {
   [K in T as CamelCase<K>]: Page<Resource<K>>;

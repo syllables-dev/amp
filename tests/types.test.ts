@@ -2,7 +2,9 @@ import { expectTypeOf, test } from "bun:test";
 import { createClient } from "@/index";
 import type {
   EditorialArtwork,
+  EditorialCard,
   Offer,
+  PlainEditorialCard,
   Ref,
   Resource,
   UniversalTag,
@@ -37,6 +39,18 @@ test("songs carry selfie sing support and universal tags when extended", () => {
   expectTypeOf<Plain>().not.toHaveProperty("unitags2");
   expectTypeOf<Extended["supportsSelfieSing"]>().toEqualTypeOf<boolean>();
   expectTypeOf<Extended["unitags2"]>().toEqualTypeOf<UniversalTag[]>();
+});
+
+test("albums carry editorial cards when extended", () => {
+  const extended = () =>
+    am.albums.get("1", { extend: ["editorialCard", "plainEditorialCard"] });
+  type Extended = Awaited<ReturnType<typeof extended>>;
+  expectTypeOf<Extended["editorialCard"]>().toEqualTypeOf<
+    Record<string, EditorialCard> | undefined
+  >();
+  expectTypeOf<Extended["plainEditorialCard"]>().toEqualTypeOf<
+    Record<string, PlainEditorialCard> | undefined
+  >();
 });
 
 test("fields narrow both base and extended attributes", () => {

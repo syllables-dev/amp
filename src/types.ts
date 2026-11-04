@@ -548,8 +548,10 @@ export interface LibraryMusicVideoAttributes {
 export interface AlbumExtended {
   artistUrl?: string;
   editorialArtwork: EditorialArtwork;
+  editorialCard?: Record<string, EditorialCard>;
   editorialVideo?: EditorialVideo;
   offers: Offer[];
+  plainEditorialCard?: Record<string, PlainEditorialCard>;
   plainEditorialNotes?: EditorialNotes;
   versionHash: string;
 }

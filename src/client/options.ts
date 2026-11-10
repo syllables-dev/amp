@@ -36,6 +36,10 @@ export interface PageOptions<L extends number = number> extends Scope {
   offset?: number;
 }
 
+export type TrackMeta<T extends CatalogType> = T extends "albums"
+  ? { readonly tracks?: readonly "popularity"[] }
+  : never;
+
 export interface GetOptions<
   T extends CatalogType,
   I extends Relationship<T>,
@@ -47,6 +51,7 @@ export interface GetOptions<
   extend?: readonly E[];
   fields?: readonly F[];
   include?: readonly I[];
+  meta?: TrackMeta<T>;
   viewLimits?: { readonly [K in V]?: ViewLimit<T, K> };
   views?: readonly V[];
 }

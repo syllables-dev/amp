@@ -71,9 +71,10 @@ export const createCatalog =
   <T extends CatalogType>(type: T): CatalogCollection<T> => {
     type AnyGetOptions = Omit<
       GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>, View<T>>,
-      "viewLimits"
+      "meta" | "viewLimits"
     > & {
       geoHash?: string;
+      meta?: Readonly<Partial<Record<string, readonly string[]>>>;
       viewLimits?: Readonly<Partial<Record<string, number>>>;
     };
     const counter = countExtends[type];
@@ -93,6 +94,12 @@ export const createCatalog =
       include: scope.include,
       l: context.language(scope),
       views: scope.views,
+      ...Object.fromEntries(
+        Object.entries(scope.meta ?? {}).map(([relationship, names]) => [
+          `meta[${type}:${relationship}]`,
+          names,
+        ])
+      ),
       ...Object.fromEntries(
         Object.entries(scope.viewLimits ?? {}).map(([view, limit]) => [
           `limit[${type}:${view}]`,

@@ -7,6 +7,7 @@ import { hydrator } from "@/internal/hydrate";
 import { loadPage, mapped, type PageSource } from "@/internal/pages";
 import {
   createTransport,
+  type Query,
   type RawDocument,
   type RawResource,
 } from "@/internal/transport";
@@ -73,13 +74,10 @@ export const createContext = (options: ClientOptions) => {
   const expand = async <T>(
     document: RawDocument,
     ref: RawResource,
-    scope?: Scope & { complete?: boolean; relatedExtend?: readonly string[] }
+    completion?: Query
   ) => {
-    if (scope && scope.complete !== false) {
-      await completeRelationships(sendMap, document, ref, {
-        extend: scope.relatedExtend?.length ? scope.relatedExtend : undefined,
-        l: language(scope),
-      });
+    if (completion) {
+      await completeRelationships(sendMap, document, ref, completion);
     }
     return hydrator<T>(document)(ref);
   };
@@ -112,13 +110,13 @@ export const createContext = (options: ClientOptions) => {
       document: RawDocument,
       type: string,
       id: string,
-      scope?: Scope & { complete?: boolean }
+      completion?: Query
     ) => {
       const ref = locate(document, type, id);
       if (!ref) {
         throw notFound(type, id);
       }
-      return expand<T>(document, ref, scope);
+      return expand<T>(document, ref, completion);
     },
   };
 };

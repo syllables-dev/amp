@@ -87,7 +87,12 @@ export const createLibrary = (context: Context) => {
           path: `${libraryPath(type)}/${id}`,
           query: query(scope),
         });
-        return context.single(document, type, id, scope);
+        return context.single(
+          document,
+          type,
+          id,
+          scope.complete === false ? undefined : { l: context.language(scope) }
+        );
       },
       list: (scope) => context.page(source(scope)) as never,
       related: (id, relationship, scope = {}) => {

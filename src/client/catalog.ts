@@ -151,10 +151,16 @@ export const createCatalog =
       ref: RawResource,
       scope: AnyGetOptions
     ) => {
+      const relatedExtend = relatedNames(scope);
       const resource = await context.expand<Resource<T, Defaults<T>>>(
         document,
         ref,
-        { ...scope, relatedExtend: relatedNames(scope) }
+        scope.complete === false
+          ? undefined
+          : {
+              extend: relatedExtend.length > 0 ? relatedExtend : undefined,
+              l: context.language(scope),
+            }
       );
       for (const name of addedCount(scope)) {
         delete (resource as Record<string, unknown>)[name];

@@ -7,7 +7,8 @@ import type {
   ViewArgs,
 } from "@/client/options";
 import { hydrator } from "@/internal/hydrate";
-import type { Query } from "@/internal/transport";
+import type { Query, RawDocument, RawResource } from "@/internal/transport";
+import { filterLimits } from "@/limits";
 import type { CatalogType } from "@/types/registry";
 import type {
   AttributeName,
@@ -26,7 +27,32 @@ import type {
 } from "@/types/resource";
 import type { CreditCategory } from "@/types/resources/role-categories";
 
+type FilterCaps = typeof filterLimits;
+
+export type CatalogFilter<T extends CatalogType> = T extends keyof FilterCaps
+  ? {
+      [K in keyof FilterCaps[T]]: { readonly [P in K]: readonly string[] };
+    }[keyof FilterCaps[T]]
+  : never;
+
+export type FilterOptions<
+  T extends CatalogType,
+  I extends Relationship<T>,
+  F extends AttributeName<T>,
+  E extends Extend<T>,
+  X extends RelatedExtend<T>,
+> = Omit<GetOptions<T, I, F, E, never, X>, "viewLimits" | "views">;
+
 export interface CatalogCollection<T extends CatalogType> {
+  filter: <
+    const I extends Relationship<T> = never,
+    const F extends AttributeName<T> = AttributeName<T>,
+    const E extends Extend<T> = never,
+    const X extends RelatedExtend<T> = never,
+  >(
+    by: CatalogFilter<T>,
+    options?: FilterOptions<T, I, F, E, X>
+  ) => Promise<Resource<T, I | Defaults<T>, F, E, X>[]>;
   get: <
     const I extends Relationship<T> = never,
     const F extends AttributeName<T> = AttributeName<T>,
@@ -64,6 +90,9 @@ export interface SongCollection extends CatalogCollection<"songs"> {
   lyrics: (id: string, options?: Scope) => Promise<string>;
   syllableLyrics: (id: string, options?: Scope) => Promise<string>;
 }
+
+const filterCaps: Record<string, Record<string, number> | undefined> =
+  filterLimits;
 
 const countExtends: Partial<Record<CatalogType, string>> = {
   playlists: "trackCount",
@@ -119,6 +148,57 @@ export const createCatalog =
         ])
       ),
     });
+    const finish = async (
+      document: RawDocument,
+      ref: RawResource,
+      scope: AnyGetOptions
+    ) => {
+      const resource = await context.expand<Resource<T, Defaults<T>>>(
+        document,
+        ref,
+        { ...scope, relatedExtend: relatedNames(scope) }
+      );
+      if (counter && addsCount(scope)) {
+        delete (resource as Record<string, unknown>)[counter];
+      }
+      return resource;
+    };
+    const filter = async (
+      by: Record<string, readonly string[]>,
+      scope: AnyGetOptions
+    ) => {
+      const path = await context.catalogPath(scope, type);
+      const documents = await Promise.all(
+        Object.entries(by).flatMap(([name, values]) => {
+          const size = filterCaps[type]?.[name] ?? values.length;
+          return Array.from(
+            { length: Math.ceil(values.length / size) },
+            (_, index) =>
+              context.sendMap({
+                path,
+                query: {
+                  ...query(scope),
+                  [`filter[${name}]`]: values.slice(
+                    index * size,
+                    index * size + size
+                  ),
+                },
+              })
+          );
+        })
+      );
+      return Promise.all(
+        documents.flatMap((document) =>
+          (document.data ?? []).map((ref) =>
+            finish(
+              document,
+              context.locate(document, ref.type, ref.id) ?? ref,
+              scope
+            )
+          )
+        )
+      );
+    };
     const fetchOne = async (
       id: string,
       scope: AnyGetOptions,
@@ -137,15 +217,7 @@ export const createCatalog =
           );
       const ref = context.locate(document, type, id);
       if (ref) {
-        const resource = await context.expand<Resource<T, Defaults<T>>>(
-          document,
-          ref,
-          { ...scope, relatedExtend: relatedNames(scope) }
-        );
-        if (counter && addsCount(scope)) {
-          delete (resource as Record<string, unknown>)[counter];
-        }
-        return resource;
+        return finish(document, ref, scope);
       }
       if (missing === "throw") {
         throw context.notFound(type, id);
@@ -161,6 +233,8 @@ export const createCatalog =
         query: { ...context.pageQuery(scope), geoHashLocation: scope.geoHash },
       });
     return {
+      filter: (by, scope) =>
+        filter(by as Record<string, readonly string[]>, scope ?? {}) as never,
       get: (id, scope) => fetchOne(id, scope ?? {}, "throw") as never,
       getMany: async (ids, scope) =>
         (

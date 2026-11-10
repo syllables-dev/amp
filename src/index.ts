@@ -1,7 +1,12 @@
 // biome-ignore-all lint/performance/noBarrelFile: file defines package public surface
 
 export { type ConcertCity, concertCities } from "@/cities";
-export type { CatalogCollection, SongCollection } from "@/client/catalog";
+export type {
+  CatalogCollection,
+  CatalogFilter,
+  FilterOptions,
+  SongCollection,
+} from "@/client/catalog";
 export type { ChartExtra, Charts } from "@/client/charts";
 export { type Client, createClient } from "@/client/index";
 export type {

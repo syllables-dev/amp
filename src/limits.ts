@@ -24,3 +24,8 @@ export const pageLimits = {
     playlists: { "featured-artists": 200, "more-by-curator": 200 },
   },
 } as const;
+
+export const filterLimits = {
+  albums: { equivalents: 25, upc: 25 },
+  songs: { equivalents: 300, isrc: 25 },
+} as const;

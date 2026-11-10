@@ -139,6 +139,27 @@ describe("catalog gets", () => {
     );
   });
 
+  test("filters split their values at apple's cap for each filter", async () => {
+    const api = fakeApi(() => ({ body: { data: [] } }));
+    const values = (count: number) =>
+      Array.from({ length: count }, (_, index) => String(index));
+    await Promise.all([
+      api.client.songs.filter({ isrc: values(30) }),
+      api.client.songs.filter({ equivalents: values(300) }),
+    ]);
+    const sizes = api.urls.map((url) => {
+      const [[name, list] = ["", ""]] = [...url.searchParams].filter(([key]) =>
+        key.startsWith("filter[")
+      );
+      return `${name}:${list.split(",").length}`;
+    });
+    expect(sizes.sort((a, b) => a.localeCompare(b))).toEqual([
+      "filter[equivalents]:300",
+      "filter[isrc]:25",
+      "filter[isrc]:5",
+    ]);
+  });
+
   test("a renamed id resolves through meta.formerIds", async () => {
     const api = fakeApi(() => ({
       body: {

@@ -1,4 +1,5 @@
 import { hosts, webPlayer } from "@/config";
+import { AmpError } from "@/errors";
 import { hydrator } from "@/internal/hydrate";
 import type {
   Query,
@@ -34,6 +35,13 @@ export const follow = (link: string, query: Query) => {
   };
 };
 
+export const pastEnd = (error: unknown): RawDocument => {
+  if (error instanceof AmpError && error.status === 404) {
+    return {};
+  }
+  throw error;
+};
+
 export const remainingOffsets = (total: number, loaded: number, size: number) =>
   Array.from(
     { length: Math.ceil((total - loaded) / size) },
@@ -51,7 +59,14 @@ export const toPage = <T, D extends RawDocument = RawDocument>(
   return {
     items: (slice?.data ?? []).map(resolve),
     next: next
-      ? () => loadPage<T, D>(send, { ...source, ...follow(next, source.query) })
+      ? async () => {
+          const following = { ...source, ...follow(next, source.query) };
+          const nextDocument = await send<D>({
+            path: following.path,
+            query: following.query,
+          }).catch(pastEnd);
+          return toPage<T, D>(send, following, nextDocument as D);
+        }
       : undefined,
     total: document.meta?.total,
   };

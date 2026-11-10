@@ -1,5 +1,4 @@
-import { AmpError } from "@/errors";
-import { follow, remainingOffsets } from "@/internal/pages";
+import { follow, pastEnd, remainingOffsets } from "@/internal/pages";
 import type {
   Query,
   RawDocument,
@@ -24,13 +23,6 @@ const countOf = (resource: RawResource, name: string) => {
   const attribute = counts[resource.type]?.[name];
   const value = attribute ? resource.attributes?.[attribute] : undefined;
   return typeof value === "number" ? value : undefined;
-};
-
-const pastEnd = (error: unknown): RawDocument => {
-  if (error instanceof AmpError && error.status === 404) {
-    return {};
-  }
-  throw error;
 };
 
 const followAll = async (

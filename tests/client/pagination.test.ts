@@ -23,6 +23,23 @@ describe("pagination", () => {
     expect(api.urls[1]?.searchParams.get("platform")).toBe("web");
   });
 
+  test("a next link apple leaves on the last page ends paging instead of failing", async () => {
+    const api = fakeApi((url) =>
+      url.searchParams.has("offset")
+        ? { body: { errors: [{ code: "40400", status: "404" }] }, status: 404 }
+        : {
+            body: {
+              data: [song("1")],
+              next: "/v1/catalog/hk/artists/1/view/top-songs?offset=1",
+            },
+          }
+    );
+    const songs = await Array.fromAsync(
+      api.client.paginate(api.client.artists.view("1", "top-songs"))
+    );
+    expect(songs.map((track) => track.id)).toEqual(["1"]);
+  });
+
   test("chart next pages follow chartId and read results, not top-level data", async () => {
     const playlist = (id: string) => ({
       attributes: { name: `playlist ${id}` },

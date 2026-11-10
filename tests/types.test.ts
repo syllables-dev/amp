@@ -186,3 +186,13 @@ test("included resources carry only what apple embeds in them", () => {
   expectTypeOf<Song["credits"][number]>().toHaveProperty("creditArtists");
   expectTypeOf<Song["albums"][number]>().not.toHaveProperty("tracks");
 });
+
+test("related extends type only the relationship they were asked for", () => {
+  const read = () =>
+    am.albums.get("1", { extendRelated: { tracks: ["artistUrl"] } });
+  const plain = () => am.albums.get("1");
+  type Track = Awaited<ReturnType<typeof read>>["tracks"][number];
+  type PlainTrack = Awaited<ReturnType<typeof plain>>["tracks"][number];
+  expectTypeOf<Track["artistUrl"]>().toEqualTypeOf<string>();
+  expectTypeOf<PlainTrack>().not.toHaveProperty("artistUrl");
+});

@@ -3,6 +3,7 @@ import type { CatalogType, LibraryType } from "@/types/registry";
 import type {
   AttributeName,
   Extend,
+  RelatedExtend,
   Relationship,
   UpTo,
   View,
@@ -46,9 +47,11 @@ export interface GetOptions<
   F extends AttributeName<T>,
   E extends Extend<T>,
   V extends View<T>,
+  X extends RelatedExtend<T> = RelatedExtend<T>,
 > extends Scope {
   complete?: boolean;
   extend?: readonly E[];
+  extendRelated?: X;
   fields?: readonly F[];
   include?: readonly I[];
   meta?: TrackMeta<T>;

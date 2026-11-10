@@ -19,6 +19,24 @@ describe("capped relationships", () => {
     },
   });
 
+  test("later pages of a relationship keep the extends asked for it", async () => {
+    const api = fakeApi((url) =>
+      url.pathname.endsWith("/tracks")
+        ? {
+            body: {
+              data: [{ id: "1", type: "songs" }],
+              resources: { songs: { "1": song("1") } },
+            },
+          }
+        : { body: playlist("/v1/catalog/hk/playlists/pl.1/tracks?offset=1") }
+    );
+    await api.client.playlists.get("pl.1", {
+      extendRelated: { tracks: ["artistUrl"] },
+    });
+    expect(api.urls[0]?.searchParams.get("extend")).toContain("artistUrl");
+    expect(api.urls[1]?.searchParams.get("extend")).toBe("artistUrl");
+  });
+
   test("gets follow next links until the relationship is whole", async () => {
     const api = fakeApi((url) => {
       if (!url.pathname.endsWith("/tracks")) {

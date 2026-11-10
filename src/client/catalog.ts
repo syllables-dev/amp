@@ -14,6 +14,7 @@ import type {
   Defaults,
   Extend,
   Page,
+  RelatedExtend,
   Relationship,
   RelationshipLimit,
   Resource,
@@ -31,19 +32,21 @@ export interface CatalogCollection<T extends CatalogType> {
     const F extends AttributeName<T> = AttributeName<T>,
     const E extends Extend<T> = never,
     const V extends View<T> = never,
+    const X extends RelatedExtend<T> = never,
   >(
     id: string,
-    options?: GetOptions<T, I, F, E, V> & Located<V>
-  ) => Promise<Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>>;
+    options?: GetOptions<T, I, F, E, V, X> & Located<V>
+  ) => Promise<Resource<T, I | Defaults<T>, F, E, X> & WithViews<T, V>>;
   getMany: <
     const I extends Relationship<T> = never,
     const F extends AttributeName<T> = AttributeName<T>,
     const E extends Extend<T> = never,
     const V extends View<T> = never,
+    const X extends RelatedExtend<T> = never,
   >(
     ids: readonly string[],
-    options?: GetOptions<T, I, F, E, V> & Located<V>
-  ) => Promise<(Resource<T, I | Defaults<T>, F, E> & WithViews<T, V>)[]>;
+    options?: GetOptions<T, I, F, E, V, X> & Located<V>
+  ) => Promise<(Resource<T, I | Defaults<T>, F, E, X> & WithViews<T, V>)[]>;
   related: <R extends Relationship<T>>(
     id: string,
     relationship: R,
@@ -71,8 +74,9 @@ export const createCatalog =
   <T extends CatalogType>(type: T): CatalogCollection<T> => {
     type AnyGetOptions = Omit<
       GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>, View<T>>,
-      "meta" | "viewLimits"
+      "extendRelated" | "meta" | "viewLimits"
     > & {
+      extendRelated?: Readonly<Partial<Record<string, readonly string[]>>>;
       geoHash?: string;
       meta?: Readonly<Partial<Record<string, readonly string[]>>>;
       viewLimits?: Readonly<Partial<Record<string, number>>>;
@@ -86,8 +90,16 @@ export const createCatalog =
       names: readonly string[] | undefined,
       scope: AnyGetOptions
     ) => (counter && addsCount(scope) ? [...(names ?? []), counter] : names);
+    const relatedNames = (scope: AnyGetOptions) =>
+      Object.values(scope.extendRelated ?? {}).flatMap((names) => names ?? []);
+    const extendNames = (scope: AnyGetOptions) => {
+      const names = [
+        ...new Set([...(scope.extend ?? []), ...relatedNames(scope)]),
+      ];
+      return names.length > 0 ? names : undefined;
+    };
     const query = (scope: AnyGetOptions): Query => ({
-      extend: withCount(scope.extend, scope),
+      extend: withCount(extendNames(scope), scope),
       [`fields[${type}]`]:
         scope.fields && withCount(scope.fields.map(String), scope),
       geoHashLocation: scope.geoHash,
@@ -128,7 +140,7 @@ export const createCatalog =
         const resource = await context.expand<Resource<T, Defaults<T>>>(
           document,
           ref,
-          scope
+          { ...scope, relatedExtend: relatedNames(scope) }
         );
         if (counter && addsCount(scope)) {
           delete (resource as Record<string, unknown>)[counter];

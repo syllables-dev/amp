@@ -73,10 +73,11 @@ export const createContext = (options: ClientOptions) => {
   const expand = async <T>(
     document: RawDocument,
     ref: RawResource,
-    scope?: Scope & { complete?: boolean }
+    scope?: Scope & { complete?: boolean; relatedExtend?: readonly string[] }
   ) => {
     if (scope && scope.complete !== false) {
       await completeRelationships(sendMap, document, ref, {
+        extend: scope.relatedExtend?.length ? scope.relatedExtend : undefined,
         l: language(scope),
       });
     }

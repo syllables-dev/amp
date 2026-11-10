@@ -75,12 +75,34 @@ export type Listable<T extends ResourceType> = Exclude<
   SingleOnly<T>
 >;
 
+export type RelatedExtend<T extends ResourceType> = {
+  readonly [R in Relationship<T>]?: readonly Extend<Target<T, R>>[];
+};
+
+type RelatedNames<X, R extends string> = X extends {
+  readonly [K in R]?: readonly (infer N extends string)[];
+}
+  ? N
+  : never;
+
+type IncludedResource<
+  T extends ResourceType,
+  R extends Relationship<T>,
+  X,
+> = Resource<
+  Target<T, R>,
+  Embedded<Target<T, R>>,
+  PropertyKey,
+  RelatedNames<X, R>
+>;
+
 type Included<
   T extends ResourceType,
   R extends Relationship<T>,
+  X,
 > = R extends Registry[T]["partial"]
-  ? (Ref<Target<T, R>> | Resource<Target<T, R>, Embedded<Target<T, R>>>)[]
-  : Resource<Target<T, R>, Embedded<Target<T, R>>>[];
+  ? (Ref<Target<T, R>> | IncludedResource<T, R, X>)[]
+  : IncludedResource<T, R, X>[];
 
 export interface Ref<T extends ResourceType = ResourceType> {
   href?: string;
@@ -106,6 +128,7 @@ export type Resource<
   I extends string = never,
   F extends PropertyKey = PropertyKey,
   E extends string = never,
+  X = unknown,
 > = T extends ResourceType
   ? Ref<T> &
       Sparse<Attributes<T> & Pick<Extended<T>, Extract<E, Extend<T>>>, F> & {
@@ -114,12 +137,12 @@ export type Resource<
         [R in Exclude<
           Requested<T, I>,
           Registry[T]["optional"]
-        > as CamelCase<R>]: Included<T, R>;
+        > as CamelCase<R>]: Included<T, R, X>;
       } & {
         [R in Extract<
           Requested<T, I>,
           Registry[T]["optional"]
-        > as CamelCase<R>]?: Included<T, R>;
+        > as CamelCase<R>]?: Included<T, R, X>;
       } & {
         meta?: Record<string, unknown>;
       }

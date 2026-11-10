@@ -1,6 +1,9 @@
-import { hosts, webPlayer } from "@/config";
-import type { RawResource } from "@/internal/transport";
+import { webPlayer } from "@/config";
+import { AmpError } from "@/errors";
+import { createTransport, type RawResource } from "@/internal/transport";
 import { chunk, idLimit } from "@/limits";
+import type { ResourceType } from "@/types/registry";
+import type { Extend, Relationship } from "@/types/resource";
 
 const developerToken = process.env.AMP_DEVELOPER_TOKEN;
 const userToken = process.env.AMP_USER_TOKEN;
@@ -12,12 +15,7 @@ if (!developerToken) {
   process.exit(1);
 }
 
-const headers = {
-  authorization: `Bearer ${developerToken}`,
-  origin: webPlayer.origin,
-  referer: webPlayer.referer,
-  ...(userToken ? { "media-user-token": userToken } : {}),
-};
+const send = createTransport({ cache: false, developerToken, userToken });
 
 interface Document {
   data?: RawResource[];
@@ -25,117 +23,140 @@ interface Document {
   results?: Record<string, unknown>;
 }
 
-const catalog: Record<string, { extend: string[]; include: string[] }> = {
+const catalog = {
   albums: {
-    extend: [
-      "artistUrl",
-      "editorialArtwork",
-      "editorialCard",
-      "editorialVideo",
-      "offers",
-      "plainEditorialCard",
-      "plainEditorialNotes",
-      "versionHash",
-    ],
-    include: ["artists", "genres", "library", "record-labels", "tracks"],
+    extend: {
+      artistUrl: true,
+      editorialArtwork: true,
+      editorialCard: true,
+      editorialVideo: true,
+      offers: true,
+      plainEditorialCard: true,
+      plainEditorialNotes: true,
+      versionHash: true,
+    },
+    include: {
+      artists: true,
+      genres: true,
+      library: true,
+      "record-labels": true,
+      tracks: true,
+    },
   },
   "apple-curators": {
-    extend: [
-      "editorialArtwork",
-      "editorialVideo",
-      "plainEditorialNotes",
-      "playlistCount",
-    ],
-    include: ["playlists"],
+    extend: {
+      editorialArtwork: true,
+      editorialVideo: true,
+      plainEditorialNotes: true,
+      playlistCount: true,
+    },
+    include: { playlists: true },
   },
   artists: {
-    extend: [
-      "artistBio",
-      "bornOrFormed",
-      "editorialArtwork",
-      "editorialVideo",
-      "hasBiographyContent",
-      "hasBonusContent",
-      "hasMusicEvents",
-      "hero",
-      "isGroup",
-      "keyColor",
-      "origin",
-      "plainEditorialNotes",
-    ],
-    include: ["albums", "genres", "music-videos", "playlists", "station"],
+    extend: {
+      artistBio: true,
+      bornOrFormed: true,
+      editorialArtwork: true,
+      editorialVideo: true,
+      hasBiographyContent: true,
+      hasBonusContent: true,
+      hasMusicEvents: true,
+      hero: true,
+      isGroup: true,
+      keyColor: true,
+      origin: true,
+      plainEditorialNotes: true,
+    },
+    include: {
+      albums: true,
+      genres: true,
+      "music-videos": true,
+      playlists: true,
+      station: true,
+    },
   },
   concerts: {
-    extend: ["eventDataProviders", "tickets"],
-    include: ["artists", "playlists", "venues"],
+    extend: { eventDataProviders: true, tickets: true },
+    include: { artists: true, playlists: true, venues: true },
   },
   "music-videos": {
-    extend: [
-      "artistUrl",
-      "editorialArtwork",
-      "editorialCard",
-      "offers",
-      "plainEditorialCard",
-      "plainEditorialNotes",
-    ],
-    include: ["albums", "artists", "genres", "library", "songs"],
+    extend: {
+      artistUrl: true,
+      editorialArtwork: true,
+      editorialCard: true,
+      offers: true,
+      plainEditorialCard: true,
+      plainEditorialNotes: true,
+    },
+    include: {
+      albums: true,
+      artists: true,
+      genres: true,
+      library: true,
+      songs: true,
+    },
   },
   playlists: {
-    extend: [
-      "artistNamesList",
-      "editorialArtwork",
-      "editorialCard",
-      "editorialVideo",
-      "geoLocation",
-      "plainEditorialCard",
-      "plainEditorialNotes",
-      "trackCount",
-      "trackTypes",
-      "versionHash",
-    ],
-    include: ["curator", "library", "tracks"],
+    extend: {
+      artistNamesList: true,
+      editorialArtwork: true,
+      editorialCard: true,
+      editorialVideo: true,
+      geoLocation: true,
+      plainEditorialCard: true,
+      plainEditorialNotes: true,
+      trackCount: true,
+      trackTypes: true,
+      versionHash: true,
+    },
+    include: { curator: true, library: true, tracks: true },
   },
   songs: {
-    extend: [
-      "artistUrl",
-      "editorialArtwork",
-      "extendedAssetUrls",
-      "lyricsExcerpt",
-      "offers",
-      "spatialOffsets",
-      "supportsSelfieSing",
-      "supportsSmartTransitions",
-      "unitags2",
-    ],
-    include: [
-      "albums",
-      "artists",
-      "audio-analysis",
-      "composers",
-      "credits",
-      "flexml-analysis",
-      "genres",
-      "library",
-      "lyrics",
-      "music-videos",
-      "raw-genres",
-      "station",
-    ],
+    extend: {
+      artistUrl: true,
+      editorialArtwork: true,
+      extendedAssetUrls: true,
+      lyricsExcerpt: true,
+      offers: true,
+      spatialOffsets: true,
+      supportsSelfieSing: true,
+      supportsSmartTransitions: true,
+      unitags2: true,
+    },
+    include: {
+      albums: true,
+      artists: true,
+      "audio-analysis": true,
+      composers: true,
+      credits: true,
+      "flexml-analysis": true,
+      genres: true,
+      library: true,
+      lyrics: true,
+      "music-videos": true,
+      "raw-genres": true,
+      station: true,
+    },
   },
   stations: {
-    extend: [
-      "editorialArtwork",
-      "editorialCard",
-      "editorialVideo",
-      "plainEditorialCard",
-      "plainEditorialNotes",
-    ],
-    include: [],
+    extend: {
+      editorialArtwork: true,
+      editorialCard: true,
+      editorialVideo: true,
+      plainEditorialCard: true,
+      plainEditorialNotes: true,
+    },
+    include: {},
   },
   "uploaded-videos": {
-    extend: ["editorialCard", "plainEditorialCard"],
-    include: [],
+    extend: { editorialCard: true, plainEditorialCard: true },
+    include: {},
   },
+} satisfies {
+  readonly [T in ResourceType]?: {
+    extend: Record<Extend<T>, true>;
+    include: Record<Relationship<T>, true>;
+  };
 };
 
 const searchTypes = Object.keys(catalog).filter(
@@ -160,22 +181,24 @@ const sampleSize = Number(process.env.AUDIT_SAMPLE ?? 300);
 const only = new Set(process.argv.slice(2));
 
 const get = async (path: string, query: Record<string, string> = {}) => {
-  const url = new URL(path, hosts.api);
-  url.searchParams.set("platform", webPlayer.platform);
-  for (const [key, value] of Object.entries(query)) {
-    url.searchParams.set(key, value);
-  }
   for (const delay of [0, 1000, 3000, 6000]) {
     // biome-ignore lint/performance/noAwaitInLoops: retries wait for the rate limit in order
     await Bun.sleep(delay);
-    const response = await fetch(url, { headers });
-    if (response.status === 429 || response.status >= 500) {
-      continue;
+    try {
+      return await send<Document>({
+        path,
+        query: { ...query, platform: webPlayer.platform },
+      });
+    } catch (error) {
+      if (!(error instanceof AmpError)) {
+        throw error;
+      }
+      if (error.status !== 429 && error.status < 500) {
+        return {};
+      }
     }
-    const text = await response.text();
-    return (response.ok && text ? JSON.parse(text) : {}) as Document;
   }
-  return {} as Document;
+  return {};
 };
 
 const collect = async () => {
@@ -327,7 +350,9 @@ const report = (
 };
 
 const found = await collect();
-for (const [type, { extend, include }] of Object.entries(catalog)) {
+for (const [type, names] of Object.entries(catalog)) {
+  const extend = Object.keys(names.extend);
+  const include = Object.keys(names.include);
   if (only.size && !only.has(type)) {
     continue;
   }

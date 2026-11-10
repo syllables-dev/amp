@@ -26,6 +26,7 @@ export interface FlexmlAnalysisAttributes {
 export interface FlexmlAnalysisEntry {
   attributes: FlexmlAnalysisAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

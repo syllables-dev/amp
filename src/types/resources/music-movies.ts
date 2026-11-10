@@ -26,6 +26,7 @@ export interface MusicMovieAttributes {
 export interface MusicMoviesEntry {
   attributes: MusicMovieAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

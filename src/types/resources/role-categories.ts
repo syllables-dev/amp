@@ -15,6 +15,7 @@ export type CreditCategory = Resource<"role-categories", "credit-artists">;
 export interface RoleCategoriesEntry {
   attributes: CreditCategoryAttributes;
   defaults: "credit-artists";
+  embedded: "credit-artists";
   extended: NoExtend;
   optional: never;
   partial: never;

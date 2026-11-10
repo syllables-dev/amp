@@ -14,6 +14,7 @@ export interface CreditArtistAttributes {
 export interface CreditArtistsEntry {
   attributes: CreditArtistAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

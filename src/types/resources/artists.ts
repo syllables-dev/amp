@@ -60,6 +60,7 @@ export type Artist = Resource<"artists">;
 export interface ArtistsEntry {
   attributes: ArtistAttributes;
   defaults: never;
+  embedded: never;
   extended: ArtistExtended;
   optional: never;
   partial: "station";

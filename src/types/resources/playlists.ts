@@ -67,6 +67,7 @@ export type Playlist = Resource<"playlists">;
 export interface PlaylistsEntry {
   attributes: PlaylistAttributes;
   defaults: "tracks";
+  embedded: never;
   extended: PlaylistExtended;
   optional: "library";
   partial: "curator";

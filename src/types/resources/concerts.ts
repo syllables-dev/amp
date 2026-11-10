@@ -29,6 +29,7 @@ export type Concert = Resource<"concerts">;
 export interface ConcertsEntry {
   attributes: ConcertAttributes;
   defaults: never;
+  embedded: never;
   extended: ConcertExtended;
   optional: never;
   partial: never;

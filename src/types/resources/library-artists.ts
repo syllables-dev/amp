@@ -10,6 +10,7 @@ export type LibraryArtist = Resource<"library-artists">;
 export interface LibraryArtistsEntry {
   attributes: LibraryArtistAttributes;
   defaults: never;
+  embedded: never;
   extended: LibraryExtended;
   optional: never;
   partial: never;

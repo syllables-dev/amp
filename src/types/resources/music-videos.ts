@@ -54,6 +54,7 @@ export type MusicVideo = Resource<"music-videos">;
 export interface MusicVideosEntry {
   attributes: MusicVideoAttributes;
   defaults: never;
+  embedded: never;
   extended: MusicVideoExtended;
   optional: "library";
   partial: never;

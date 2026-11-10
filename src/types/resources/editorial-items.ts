@@ -25,6 +25,7 @@ export type EditorialItem = Resource<"editorial-items">;
 export interface EditorialItemsEntry {
   attributes: EditorialItemAttributes;
   defaults: never;
+  embedded: never;
   extended: EditorialCards;
   optional: never;
   partial: never;

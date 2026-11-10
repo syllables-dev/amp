@@ -179,3 +179,10 @@ test("nearby concerts need a geohash", () => {
     am.artists.view("1", "top-songs");
   };
 });
+
+test("included resources carry only what apple embeds in them", () => {
+  const read = () => am.songs.get("1", { include: ["albums", "credits"] });
+  type Song = Awaited<ReturnType<typeof read>>;
+  expectTypeOf<Song["credits"][number]>().toHaveProperty("creditArtists");
+  expectTypeOf<Song["albums"][number]>().not.toHaveProperty("tracks");
+});

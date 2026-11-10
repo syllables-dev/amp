@@ -104,6 +104,7 @@ export type LyricMatch = Song & { meta?: { snippets?: LyricSnippet[] } };
 export interface SongsEntry {
   attributes: SongAttributes;
   defaults: never;
+  embedded: never;
   extended: SongExtended;
   optional: "library" | "lyrics";
   partial: never;

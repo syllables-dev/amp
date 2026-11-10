@@ -13,6 +13,7 @@ export type Storefront = Resource<"storefronts">;
 export interface StorefrontsEntry {
   attributes: StorefrontAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

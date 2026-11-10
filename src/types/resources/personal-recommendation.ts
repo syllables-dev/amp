@@ -70,6 +70,7 @@ export type PersonalRecommendation<E extends string = never> = Omit<
 export interface PersonalRecommendationEntry {
   attributes: PersonalRecommendationAttributes;
   defaults: "contents";
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

@@ -27,6 +27,7 @@ export type LibraryAlbum = Resource<"library-albums">;
 export interface LibraryAlbumsEntry {
   attributes: LibraryAlbumAttributes;
   defaults: never;
+  embedded: never;
   extended: LibraryAlbumExtended;
   optional: never;
   partial: "artists";

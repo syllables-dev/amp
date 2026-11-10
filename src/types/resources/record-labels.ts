@@ -25,6 +25,7 @@ export type RecordLabel = Resource<"record-labels">;
 export interface RecordLabelsEntry {
   attributes: RecordLabelAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

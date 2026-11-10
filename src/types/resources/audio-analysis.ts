@@ -60,6 +60,7 @@ export type AudioAnalysis = Resource<"audio-analysis">;
 export interface AudioAnalysisEntry {
   attributes: AudioAnalysisAttributes;
   defaults: never;
+  embedded: never;
   extended: AudioAnalysisExtended;
   optional: never;
   partial: never;

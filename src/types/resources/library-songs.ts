@@ -27,6 +27,7 @@ export type LibrarySong = Resource<"library-songs">;
 export interface LibrarySongsEntry {
   attributes: LibrarySongAttributes;
   defaults: never;
+  embedded: never;
   extended: LibraryExtended;
   optional: never;
   partial: never;

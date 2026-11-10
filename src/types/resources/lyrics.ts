@@ -13,6 +13,7 @@ export interface LyricsAttributes {
 export interface LyricsEntry {
   attributes: LyricsAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

@@ -26,6 +26,7 @@ export type Venue = Resource<"venues">;
 export interface VenuesEntry {
   attributes: VenueAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

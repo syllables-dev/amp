@@ -33,6 +33,7 @@ export type LibraryPlaylist = Resource<"library-playlists">;
 export interface LibraryPlaylistsEntry {
   attributes: LibraryPlaylistAttributes;
   defaults: never;
+  embedded: never;
   extended: LibraryPlaylistExtended;
   optional: never;
   partial: never;

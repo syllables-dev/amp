@@ -23,6 +23,7 @@ export type LibraryMusicVideo = Resource<"library-music-videos">;
 export interface LibraryMusicVideosEntry {
   attributes: LibraryMusicVideoAttributes;
   defaults: never;
+  embedded: never;
   extended: LibraryExtended;
   optional: never;
   partial: never;

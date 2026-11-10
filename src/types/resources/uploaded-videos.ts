@@ -28,6 +28,7 @@ export interface UploadedVideoAttributes {
 export interface UploadedVideosEntry {
   attributes: UploadedVideoAttributes;
   defaults: never;
+  embedded: never;
   extended: EditorialCards;
   optional: never;
   partial: never;

@@ -61,6 +61,7 @@ export type Album = Resource<"albums">;
 export interface AlbumsEntry {
   attributes: AlbumAttributes;
   defaults: "tracks";
+  embedded: never;
   extended: AlbumExtended;
   optional: "library";
   partial: never;

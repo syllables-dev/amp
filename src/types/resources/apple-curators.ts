@@ -23,6 +23,7 @@ export interface AppleCuratorExtended extends CuratorExtended {
 export interface AppleCuratorsEntry {
   attributes: AppleCuratorAttributes;
   defaults: never;
+  embedded: never;
   extended: AppleCuratorExtended;
   optional: never;
   partial: never;

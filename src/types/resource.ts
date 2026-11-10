@@ -61,6 +61,9 @@ export type ViewLimit<T extends ResourceType, V extends string> = Cap<
 export type Defaults<T extends ResourceType> = Registry[T]["defaults"] &
   Relationship<T>;
 
+export type Embedded<T extends ResourceType> = Registry[T]["embedded"] &
+  Relationship<T>;
+
 export type Refs<T extends ResourceType> = Registry[T]["refs"] &
   Relationship<T>;
 
@@ -76,8 +79,8 @@ type Included<
   T extends ResourceType,
   R extends Relationship<T>,
 > = R extends Registry[T]["partial"]
-  ? (Ref<Target<T, R>> | Resource<Target<T, R>>)[]
-  : Resource<Target<T, R>>[];
+  ? (Ref<Target<T, R>> | Resource<Target<T, R>, Embedded<Target<T, R>>>)[]
+  : Resource<Target<T, R>, Embedded<Target<T, R>>>[];
 
 export interface Ref<T extends ResourceType = ResourceType> {
   href?: string;

@@ -17,6 +17,7 @@ export interface SocialProfileAttributes {
 export interface SocialProfilesEntry {
   attributes: SocialProfileAttributes;
   defaults: never;
+  embedded: never;
   extended: NoExtend;
   optional: never;
   partial: never;

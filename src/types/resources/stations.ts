@@ -63,6 +63,7 @@ export type Station = Resource<"stations">;
 export interface StationsEntry {
   attributes: StationAttributes;
   defaults: never;
+  embedded: never;
   extended: StationExtended;
   optional: never;
   partial: never;

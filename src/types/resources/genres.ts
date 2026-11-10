@@ -17,6 +17,7 @@ export type Genre = Resource<"genres">;
 export interface GenresEntry {
   attributes: GenreAttributes;
   defaults: never;
+  embedded: never;
   extended: GenreExtended;
   optional: never;
   partial: never;

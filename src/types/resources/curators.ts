@@ -24,6 +24,7 @@ export type Curator = Resource<"curators">;
 export interface CuratorsEntry {
   attributes: CuratorAttributes;
   defaults: never;
+  embedded: never;
   extended: CuratorExtended;
   optional: never;
   partial: never;

@@ -10,15 +10,33 @@ import { capOf, pageLimits } from "@/limits";
 
 const filling = new WeakMap<RawRelationship, Promise<void>>();
 
-const counts: Record<string, Record<string, string> | undefined> = {
-  albums: { tracks: "trackCount" },
-  "library-albums": { tracks: "trackCount" },
-  playlists: { tracks: "trackCount" },
+const counts: Readonly<
+  Record<string, { attribute: string; extended: boolean; relationship: string }>
+> = {
+  albums: { attribute: "trackCount", extended: false, relationship: "tracks" },
+  "library-albums": {
+    attribute: "trackCount",
+    extended: false,
+    relationship: "tracks",
+  },
+  playlists: {
+    attribute: "trackCount",
+    extended: true,
+    relationship: "tracks",
+  },
+};
+
+export const countExtend = (type: string) => {
+  const count = counts[type];
+  return count?.extended ? count.attribute : undefined;
 };
 
 const countOf = (resource: RawResource, name: string) => {
-  const attribute = counts[resource.type]?.[name];
-  const value = attribute ? resource.attributes?.[attribute] : undefined;
+  const count = counts[resource.type];
+  const value =
+    count?.relationship === name
+      ? resource.attributes?.[count.attribute]
+      : undefined;
   return typeof value === "number" ? value : undefined;
 };
 

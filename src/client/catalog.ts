@@ -6,6 +6,7 @@ import type {
   Scope,
   ViewArgs,
 } from "@/client/options";
+import { countExtend } from "@/internal/complete";
 import { hydrator } from "@/internal/hydrate";
 import type { Query, RawDocument, RawResource } from "@/internal/transport";
 import { capOf, chunk, filterLimits } from "@/limits";
@@ -91,10 +92,6 @@ export interface SongCollection extends CatalogCollection<"songs"> {
   syllableLyrics: (id: string, options?: Scope) => Promise<string>;
 }
 
-const countExtends: Partial<Record<CatalogType, string>> = {
-  playlists: "trackCount",
-};
-
 export const createCatalog =
   (context: Context) =>
   <T extends CatalogType>(type: T): CatalogCollection<T> => {
@@ -107,27 +104,31 @@ export const createCatalog =
       meta?: Readonly<Partial<Record<string, readonly string[]>>>;
       viewLimits?: Readonly<Partial<Record<string, number>>>;
     };
-    const counter = countExtends[type];
-    const addsCount = (scope: AnyGetOptions) =>
+    const counter = countExtend(type);
+    const addedCount = (scope: AnyGetOptions) =>
       counter !== undefined &&
       scope.complete !== false &&
-      !scope.extend?.some((name) => name === counter);
-    const withCount = (
-      names: readonly string[] | undefined,
-      scope: AnyGetOptions
-    ) => (counter && addsCount(scope) ? [...(names ?? []), counter] : names);
+      !scope.extend?.some((name) => name === counter)
+        ? [counter]
+        : [];
     const relatedNames = (scope: AnyGetOptions) =>
       Object.values(scope.extendRelated ?? {}).flatMap((names) => names ?? []);
     const extendNames = (scope: AnyGetOptions) => {
       const names = [
-        ...new Set([...(scope.extend ?? []), ...relatedNames(scope)]),
+        ...new Set([
+          ...(scope.extend ?? []),
+          ...relatedNames(scope),
+          ...addedCount(scope),
+        ]),
       ];
       return names.length > 0 ? names : undefined;
     };
     const query = (scope: AnyGetOptions): Query => ({
-      extend: withCount(extendNames(scope), scope),
-      [`fields[${type}]`]:
-        scope.fields && withCount(scope.fields.map(String), scope),
+      extend: extendNames(scope),
+      [`fields[${type}]`]: scope.fields && [
+        ...scope.fields,
+        ...addedCount(scope),
+      ],
       geoHashLocation: scope.geoHash,
       include: scope.include,
       l: context.language(scope),
@@ -155,8 +156,8 @@ export const createCatalog =
         ref,
         { ...scope, relatedExtend: relatedNames(scope) }
       );
-      if (counter && addsCount(scope)) {
-        delete (resource as Record<string, unknown>)[counter];
+      for (const name of addedCount(scope)) {
+        delete (resource as Record<string, unknown>)[name];
       }
       return resource;
     };

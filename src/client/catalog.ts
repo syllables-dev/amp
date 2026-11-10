@@ -26,7 +26,7 @@ import type {
   ViewTarget,
   WithViews,
 } from "@/types/resource";
-import type { CreditCategory } from "@/types/resources/role-categories";
+import type { CreditCategory } from "@/types/resources/credits/categories";
 
 type FilterCaps = typeof filterLimits;
 

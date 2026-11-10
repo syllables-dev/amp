@@ -6,6 +6,7 @@ import type {
   Relationship,
   UpTo,
   View,
+  ViewLimit,
 } from "@/types/resource";
 import type { RecommendationExtend } from "@/types/resources/personal-recommendation";
 
@@ -46,6 +47,7 @@ export interface GetOptions<
   extend?: readonly E[];
   fields?: readonly F[];
   include?: readonly I[];
+  viewLimits?: { readonly [K in V]?: ViewLimit<T, K> };
   views?: readonly V[];
 }
 

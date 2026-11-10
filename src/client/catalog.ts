@@ -69,13 +69,13 @@ const countExtends: Partial<Record<CatalogType, string>> = {
 export const createCatalog =
   (context: Context) =>
   <T extends CatalogType>(type: T): CatalogCollection<T> => {
-    type AnyGetOptions = GetOptions<
-      T,
-      Relationship<T>,
-      AttributeName<T>,
-      Extend<T>,
-      View<T>
-    > & { geoHash?: string };
+    type AnyGetOptions = Omit<
+      GetOptions<T, Relationship<T>, AttributeName<T>, Extend<T>, View<T>>,
+      "viewLimits"
+    > & {
+      geoHash?: string;
+      viewLimits?: Readonly<Partial<Record<string, number>>>;
+    };
     const counter = countExtends[type];
     const addsCount = (scope: AnyGetOptions) =>
       counter !== undefined &&
@@ -93,6 +93,12 @@ export const createCatalog =
       include: scope.include,
       l: context.language(scope),
       views: scope.views,
+      ...Object.fromEntries(
+        Object.entries(scope.viewLimits ?? {}).map(([view, limit]) => [
+          `limit[${type}:${view}]`,
+          limit,
+        ])
+      ),
     });
     const fetchOne = async (
       id: string,

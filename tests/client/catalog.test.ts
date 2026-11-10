@@ -118,6 +118,27 @@ describe("catalog gets", () => {
     expect(rest.items.map((item) => item.id)).toEqual(["3"]);
   });
 
+  test("a view's page size is sent under apple's type:view key", async () => {
+    const api = fakeApi(() => ({
+      body: {
+        data: [{ id: "1", type: "artists" }],
+        resources: {
+          artists: {
+            "1": { attributes: {}, id: "1", type: "artists", views: {} },
+          },
+        },
+      },
+    }));
+    await api.client.artists.get("1", {
+      complete: false,
+      viewLimits: { "top-songs": 20 },
+      views: ["top-songs"],
+    });
+    expect(api.urls[0]?.searchParams.get("limit[artists:top-songs]")).toBe(
+      "20"
+    );
+  });
+
   test("a renamed id resolves through meta.formerIds", async () => {
     const api = fakeApi(() => ({
       body: {

@@ -1,8 +1,8 @@
-import type { Context, ResultsDocument } from "@/client/context";
+import type { Context } from "@/client/context";
 import type { PageOptions } from "@/client/options";
 import { camelCase } from "@/internal/hydrate";
 import { toPage } from "@/internal/pages";
-import type { RawRelationship } from "@/internal/transport";
+import type { RawRelationship, ResultsDocument } from "@/internal/transport";
 import type { ChartType } from "@/types/registry";
 import type { CamelCase, Chart, Resource, UpTo } from "@/types/resource";
 

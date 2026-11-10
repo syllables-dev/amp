@@ -1,4 +1,4 @@
-import { hosts, webPlayer } from "@/config";
+import { hosts } from "@/config";
 import { AmpError } from "@/errors";
 import { hydrator } from "@/internal/hydrate";
 import type {
@@ -14,18 +14,6 @@ export interface PageSource<D extends RawDocument> {
   query: Query;
   select?: (document: D) => RawRelationship | undefined;
 }
-
-export const mapped =
-  (send: Send): Send =>
-  (request) =>
-    send({
-      ...request,
-      query: {
-        ...request.query,
-        "format[resources]": "map",
-        platform: webPlayer.platform,
-      },
-    });
 
 export const follow = (link: string, query: Query) => {
   const url = new URL(link, hosts.api);

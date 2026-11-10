@@ -1,4 +1,4 @@
-import type { Context, ResultsDocument } from "@/client/context";
+import type { Context } from "@/client/context";
 import type { PageOptions, Scope } from "@/client/options";
 import { hosts } from "@/config";
 import { camelCase, hydrator } from "@/internal/hydrate";
@@ -8,6 +8,7 @@ import type {
   RawDocument,
   RawRelationship,
   RawResource,
+  ResultsDocument,
 } from "@/internal/transport";
 import type { SearchType } from "@/types/registry";
 import type {

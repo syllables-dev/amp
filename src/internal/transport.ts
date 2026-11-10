@@ -43,6 +43,10 @@ export interface RawDocument {
   resources?: ResourceMap;
 }
 
+export interface ResultsDocument<S> extends RawDocument {
+  results?: Record<string, S | undefined>;
+}
+
 export interface Request {
   body?: unknown;
   host?: string;
@@ -184,3 +188,15 @@ export const createTransport = (options: TransportOptions): Send => {
     return pending as Promise<D>;
   };
 };
+
+export const mapped =
+  (send: Send): Send =>
+  (request) =>
+    send({
+      ...request,
+      query: {
+        ...request.query,
+        "format[resources]": "map",
+        platform: webPlayer.platform,
+      },
+    });

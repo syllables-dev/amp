@@ -1,4 +1,4 @@
-import { type Context, unprefix } from "@/client/context";
+import type { Context } from "@/client/context";
 import type {
   LibraryListOptions,
   LibraryOptions,
@@ -60,6 +60,8 @@ const librarySearchTypes = [
   "library-playlists",
   "library-songs",
 ] as const;
+
+const unprefix = (type: string) => type.slice("library-".length);
 
 const libraryPath = (type: LibraryType) => `/v1/me/library/${unprefix(type)}`;
 

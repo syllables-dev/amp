@@ -4,17 +4,14 @@ import { AmpError } from "@/errors";
 import { createBatcher } from "@/internal/batcher";
 import { completeRelationships } from "@/internal/complete";
 import { hydrator } from "@/internal/hydrate";
-import { loadPage, mapped, type PageSource } from "@/internal/pages";
+import { loadPage, type PageSource } from "@/internal/pages";
 import {
   createTransport,
+  mapped,
   type Query,
   type RawDocument,
   type RawResource,
 } from "@/internal/transport";
-
-export interface ResultsDocument<S> extends RawDocument {
-  results?: Record<string, S | undefined>;
-}
 
 export type Context = ReturnType<typeof createContext>;
 
@@ -43,8 +40,6 @@ const notFound = (type: string, id: string) =>
     detail: `No ${type} with id ${id}`,
     title: "Resource Not Found",
   });
-
-export const unprefix = (type: string) => type.slice("library-".length);
 
 export const createContext = (options: ClientOptions) => {
   const send = createTransport(options);

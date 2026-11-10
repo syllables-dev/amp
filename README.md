@@ -47,7 +47,7 @@ bun run generate
 bun run audit albums songs
 ```
 
-`generate` rebuilds `src/generated/operations.ts` from the OpenAPI spec in the docs site. `audit` samples live responses with `AMP_DEVELOPER_TOKEN` (and `AMP_USER_TOKEN`) from the environment and prints what Apple actually returns, which is the reference for the hand-written types in `src/types.ts`.
+`generate` rebuilds `src/generated/operations.ts` from the OpenAPI spec in the docs site. `audit` samples live responses with `AMP_DEVELOPER_TOKEN` (and `AMP_USER_TOKEN`) from the environment and prints what Apple actually returns, which is the reference for the hand-written types in `src/types/`.
 
 ## License
 

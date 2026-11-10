@@ -20,7 +20,6 @@
   "scripts": {
     "audit": "bun scripts/audit.ts",
     "build": "bun scripts/build.ts",
-    "generate": "bun scripts/generate.ts",
     "prepublishOnly": "bun run build",
     "release": "npm publish --registry=https://registry.npmjs.org && npm publish --registry=https://npm.pkg.github.com",
     "check": "ultracite check",

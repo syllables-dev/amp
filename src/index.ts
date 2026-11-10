@@ -25,7 +25,7 @@ export type {
 } from "@/client/options";
 export type { SearchResults } from "@/client/search";
 export { AmpError, type ApiError } from "@/errors";
-export type { Operations } from "@/generated/operations";
+export type { Operations } from "@/operations";
 export type * from "@/types/common";
 export type * from "@/types/registry";
 export type * from "@/types/resource";

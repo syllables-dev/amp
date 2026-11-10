@@ -1,6 +1,6 @@
 import type { Context } from "@/client/context";
-import { type Operations, operationHosts } from "@/generated/operations";
 import type { Query } from "@/internal/transport";
+import { type Operations, operationHosts } from "@/operations";
 
 export type RequestParams<K extends keyof Operations> =
   Record<string, never> extends Operations[K]

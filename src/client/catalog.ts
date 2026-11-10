@@ -195,11 +195,7 @@ export const createCatalog =
         )
       );
     };
-    const fetchOne = async (
-      id: string,
-      scope: AnyGetOptions,
-      missing: "throw" | "skip"
-    ) => {
+    const fetchOne = async (id: string, scope: AnyGetOptions) => {
       const document = scope.views?.length
         ? await context.sendMap({
             path: await context.catalogPath(scope, type, id),
@@ -212,12 +208,7 @@ export const createCatalog =
             query(scope)
           );
       const ref = context.locate(document, type, id);
-      if (ref) {
-        return finish(document, ref, scope);
-      }
-      if (missing === "throw") {
-        throw context.notFound(type, id);
-      }
+      return ref && finish(document, ref, scope);
     };
     const related = async <R>(
       id: string,
@@ -231,11 +222,17 @@ export const createCatalog =
     return {
       filter: (by, scope) =>
         filter(by as Record<string, readonly string[]>, scope ?? {}) as never,
-      get: (id, scope) => fetchOne(id, scope ?? {}, "throw") as never,
+      get: async (id, scope) => {
+        const resource = await fetchOne(id, scope ?? {});
+        if (!resource) {
+          throw context.notFound(type, id);
+        }
+        return resource as never;
+      },
       getMany: async (ids, scope) =>
-        (
-          await Promise.all(ids.map((id) => fetchOne(id, scope ?? {}, "skip")))
-        ).filter((resource) => resource !== undefined) as never,
+        (await Promise.all(ids.map((id) => fetchOne(id, scope ?? {})))).filter(
+          (resource) => resource !== undefined
+        ) as never,
       related: (id, relationship, scope = {}) =>
         related(id, relationship, scope),
       view: (id, view, ...[scope]) => related(id, `view/${view}`, scope ?? {}),

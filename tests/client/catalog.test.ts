@@ -65,6 +65,18 @@ describe("catalog gets", () => {
     ]);
   });
 
+  test("fields only trim the resource being read, not what it includes", async () => {
+    const api = fakeApi(() => ({
+      body: {
+        data: [{ id: "1", type: "songs" }],
+        resources: { songs: { "1": song("1") } },
+      },
+    }));
+    await api.client.songs.get("1", { fields: ["name"], include: ["credits"] });
+    expect(api.urls[0]?.searchParams.get("fields[songs]")).toBe("name");
+    expect(api.urls[0]?.searchParams.has("fields")).toBe(false);
+  });
+
   test("a renamed id resolves through meta.formerIds", async () => {
     const api = fakeApi(() => ({
       body: {

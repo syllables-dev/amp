@@ -87,7 +87,8 @@ export const createCatalog =
     ) => (counter && addsCount(scope) ? [...(names ?? []), counter] : names);
     const query = (scope: AnyGetOptions): Query => ({
       extend: withCount(scope.extend, scope),
-      fields: scope.fields && withCount(scope.fields.map(String), scope),
+      [`fields[${type}]`]:
+        scope.fields && withCount(scope.fields.map(String), scope),
       geoHashLocation: scope.geoHash,
       include: scope.include,
       l: context.language(scope),

@@ -32,6 +32,7 @@ export interface RecommendationOptions<E extends RecommendationExtend> {
 
 export interface PageOptions<L extends number = number> extends Scope {
   limit?: L;
+  offset?: number;
 }
 
 export interface GetOptions<

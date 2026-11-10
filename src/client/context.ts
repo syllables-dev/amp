@@ -95,6 +95,7 @@ export const createContext = (options: ClientOptions) => {
     pageQuery: (scope: PageOptions) => ({
       l: language(scope),
       limit: scope.limit,
+      offset: scope.offset,
     }),
     requireUser: () => {
       if (!options.userToken) {

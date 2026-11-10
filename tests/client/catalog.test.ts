@@ -77,6 +77,47 @@ describe("catalog gets", () => {
     expect(api.urls[0]?.searchParams.has("fields")).toBe(false);
   });
 
+  test("a view shelf says when apple cut it short, and its view continues from there", async () => {
+    const api = fakeApi((url) => ({
+      body: url.pathname.endsWith("/view/top-songs")
+        ? {
+            data: [{ id: "3", type: "songs" }],
+            resources: { songs: { "3": song("3") } },
+          }
+        : {
+            data: [{ id: "1", type: "artists" }],
+            resources: {
+              artists: {
+                "1": {
+                  attributes: { name: "artist" },
+                  id: "1",
+                  type: "artists",
+                  views: {
+                    singles: { data: [] },
+                    "top-songs": {
+                      data: [{ id: "2", type: "songs" }],
+                      next: "/v1/catalog/hk/artists/1/view/top-songs?offset=1",
+                    },
+                  },
+                },
+              },
+              songs: { "2": song("2") },
+            },
+          },
+    }));
+    const artist = await api.client.artists.get("1", {
+      complete: false,
+      views: ["singles", "top-songs"],
+    });
+    expect(artist.views.topSongs.hasMore).toBe(true);
+    expect(artist.views.singles.hasMore).toBe(false);
+    const rest = await api.client.artists.view("1", "top-songs", {
+      offset: artist.views.topSongs.items.length,
+    });
+    expect(api.urls.at(-1)?.searchParams.get("offset")).toBe("1");
+    expect(rest.items.map((item) => item.id)).toEqual(["3"]);
+  });
+
   test("a renamed id resolves through meta.formerIds", async () => {
     const api = fakeApi(() => ({
       body: {

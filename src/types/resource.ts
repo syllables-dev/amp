@@ -89,6 +89,7 @@ export interface Ref<T extends ResourceType = ResourceType> {
 }
 
 export interface Shelf<T extends ResourceType = ResourceType> {
+  hasMore: boolean;
   items: Resource<T>[];
   title?: string;
 }

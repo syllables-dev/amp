@@ -47,6 +47,7 @@ export const hydrator = <T = AnyResource>(document: RawDocument) => {
         Object.entries(raw.views).map(([name, view]) => [
           camelCase(name),
           {
+            hasMore: Boolean(view.next),
             items: (view.data ?? []).map(build),
             title: view.attributes?.title,
           },

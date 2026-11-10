@@ -19,7 +19,6 @@ export const createRecommendations =
   async <const E extends RecommendationExtend = never>(
     options: RecommendationOptions<E> = {}
   ): Promise<PersonalRecommendation<E>[]> => {
-    context.requireUser();
     const document = await context.sendMap({
       path: "/v1/me/recommendations",
       query: {

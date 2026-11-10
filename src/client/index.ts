@@ -30,7 +30,6 @@ export const createClient = (options: ClientOptions) => {
     me: {
       recommendations: createRecommendations(context),
       storefront: async () => {
-        context.requireUser();
         const document = await context.send({ path: "/v1/me/storefront" });
         return context.single<Storefront>(
           document,

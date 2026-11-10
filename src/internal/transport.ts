@@ -124,6 +124,11 @@ export const createTransport = (options: TransportOptions): Send => {
         "The developerToken function returned an empty token."
       );
     }
+    if (!userToken && request.path.startsWith("/v1/me/")) {
+      throw new TypeError(
+        `${request.path} reads a listener's account and needs a userToken.`
+      );
+    }
     return {
       authorization: `Bearer ${developerToken}`,
       origin: webPlayer.origin,

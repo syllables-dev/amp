@@ -96,13 +96,6 @@ export const createContext = (options: ClientOptions) => {
       limit: scope.limit,
       offset: scope.offset,
     }),
-    requireUser: () => {
-      if (!options.userToken) {
-        throw new Error(
-          "This request reads a personal library and needs a userToken."
-        );
-      }
-    },
     resolveStorefront,
     send,
     sendMap,

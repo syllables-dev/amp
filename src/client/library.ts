@@ -72,17 +72,13 @@ export const createLibrary = (context: Context) => {
     });
     const source = (
       scope: LibraryListOptions<T, Relationship<T>, Extend<T>> = {}
-    ) => {
-      context.requireUser();
-      return {
-        path: libraryPath(type),
-        query: { ...query(scope), limit: scope.limit ?? 100, sort: scope.sort },
-      };
-    };
+    ) => ({
+      path: libraryPath(type),
+      query: { ...query(scope), limit: scope.limit ?? 100, sort: scope.sort },
+    });
     return {
       all: (scope) => walk(context.sendMap, source(scope)) as never,
       get: async (id, scope = {}) => {
-        context.requireUser();
         const document = await context.sendMap({
           path: `${libraryPath(type)}/${id}`,
           query: query(scope),
@@ -95,13 +91,11 @@ export const createLibrary = (context: Context) => {
         );
       },
       list: (scope) => context.page(source(scope)) as never,
-      related: (id, relationship, scope = {}) => {
-        context.requireUser();
-        return context.page({
+      related: (id, relationship, scope = {}) =>
+        context.page({
           path: `${libraryPath(type)}/${id}/${relationship}`,
           query: context.pageQuery(scope),
-        });
-      },
+        }),
     };
   };
 
@@ -110,29 +104,25 @@ export const createLibrary = (context: Context) => {
   >(
     term: string,
     scope: PageOptions<UpTo<25>> & { types?: readonly T[] } = {}
-  ): Promise<LibrarySearchResults<T>> => {
-    context.requireUser();
-    return (await searchPages(
+  ): Promise<LibrarySearchResults<T>> =>
+    (await searchPages(
       context,
       "/v1/me/library/search",
       { ...context.pageQuery(scope), term },
       scope.types ?? librarySearchTypes,
       (type) => camelCase(unprefix(type))
     )) as never;
-  };
 
   return {
     albums: collection("library-albums"),
     artists: collection("library-artists"),
     musicVideos: collection("library-music-videos"),
     playlists: collection("library-playlists"),
-    recentlyAdded: (scope: PageOptions<UpTo<25>> = {}) => {
-      context.requireUser();
-      return context.page<Resource<RecentlyAddedType>>({
+    recentlyAdded: (scope: PageOptions<UpTo<25>> = {}) =>
+      context.page<Resource<RecentlyAddedType>>({
         path: "/v1/me/library/recently-added",
         query: { ...context.pageQuery(scope), limit: scope.limit ?? 25 },
-      });
-    },
+      }),
     search,
     songs: collection("library-songs"),
   };

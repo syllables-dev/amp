@@ -33,4 +33,15 @@ describe("library", () => {
     expect(ids).toEqual(["0", "1", "2", "3", "4", "5", "6", "7"]);
     expect(api.urls).toHaveLength(4);
   });
+
+  test("account requests without a user token fail before reaching apple", async () => {
+    const api = fakeApi(() => ({ body: { data: [] } }));
+    await expect(api.client.library.songs.list()).rejects.toThrow(
+      "needs a userToken"
+    );
+    await expect(
+      api.client.request("GET /v1/me/library/songs")
+    ).rejects.toThrow("needs a userToken");
+    expect(api.urls).toHaveLength(0);
+  });
 });

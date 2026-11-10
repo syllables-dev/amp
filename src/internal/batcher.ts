@@ -6,26 +6,12 @@ import {
   type Send,
   serialize,
 } from "@/internal/transport";
+import { chunk, idLimit } from "@/limits";
 
 interface Batch {
   documents: Promise<Map<string, RawDocument>>;
   ids: Set<string>;
 }
-
-export const idLimits: Record<string, number> = {
-  artists: 50,
-  concerts: 50,
-  genres: 300,
-  playlists: 50,
-  songs: 300,
-};
-
-export const chunk = (ids: string[], type: string) => {
-  const size = idLimits[type] ?? 100;
-  return Array.from({ length: Math.ceil(ids.length / size) }, (_, index) =>
-    ids.slice(index * size, index * size + size)
-  );
-};
 
 export const createBatcher = (send: Send) => {
   const batches = new Map<string, Batch>();
@@ -39,7 +25,7 @@ export const createBatcher = (send: Send) => {
   ) => {
     const documents = new Map<string, RawDocument>();
     await Promise.all(
-      chunk(ids, type).map(async (group) => {
+      chunk(ids, idLimit(type)).map(async (group) => {
         const document = await send({
           path: `/v1/catalog/${storefront}`,
           query: { ...query, [`ids[${type}]`]: group },

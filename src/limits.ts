@@ -29,3 +29,24 @@ export const filterLimits = {
   albums: { equivalents: 25, upc: 25 },
   songs: { equivalents: 300, isrc: 25 },
 } as const;
+
+const idLimits: Readonly<Record<string, number>> = {
+  artists: 50,
+  concerts: 50,
+  genres: 300,
+  playlists: 50,
+  songs: 300,
+};
+
+export const idLimit = (type: string) => idLimits[type] ?? 100;
+
+export const capOf = (
+  table: Readonly<Record<string, Readonly<Record<string, number>>>>,
+  type: string,
+  name: string
+) => table[type]?.[name];
+
+export const chunk = <V>(values: readonly V[], size: number) =>
+  Array.from({ length: Math.ceil(values.length / size) }, (_, index) =>
+    values.slice(index * size, index * size + size)
+  );

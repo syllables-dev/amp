@@ -1,6 +1,6 @@
 import { hosts, webPlayer } from "@/config";
-import { chunk } from "@/internal/batcher";
 import type { RawResource } from "@/internal/transport";
+import { chunk, idLimit } from "@/limits";
 
 const developerToken = process.env.AMP_DEVELOPER_TOKEN;
 const userToken = process.env.AMP_USER_TOKEN;
@@ -282,7 +282,7 @@ const fetchMany = async (
 ) => {
   const profile = new Profile();
   const documents = await Promise.all(
-    chunk(ids, type).map((group) =>
+    chunk(ids, idLimit(type)).map((group) =>
       get("/v1/catalog/us", { ...query, [`ids[${type}]`]: group.join(",") })
     )
   );

@@ -6,12 +6,9 @@ import type {
   RawResource,
   Send,
 } from "@/internal/transport";
-import { pageLimits } from "@/limits";
+import { capOf, pageLimits } from "@/limits";
 
 const filling = new WeakMap<RawRelationship, Promise<void>>();
-
-const caps: Record<string, Record<string, number> | undefined> =
-  pageLimits.relationships;
 
 const counts: Record<string, Record<string, string> | undefined> = {
   albums: { tracks: "trackCount" },
@@ -118,7 +115,7 @@ export const completeRelationships = (
           filling.get(relationship) ??
           fetchRest(send, next, data.length, totalOf(resource, name, meta), {
             ...query,
-            limit: caps[resource.type]?.[name],
+            limit: capOf(pageLimits.relationships, resource.type, name),
           }).then(
             (pages) => merge(document, relationship, pages),
             (error: unknown) => {

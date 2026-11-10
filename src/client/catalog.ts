@@ -8,7 +8,7 @@ import type {
 } from "@/client/options";
 import { hydrator } from "@/internal/hydrate";
 import type { Query, RawDocument, RawResource } from "@/internal/transport";
-import { filterLimits } from "@/limits";
+import { capOf, chunk, filterLimits } from "@/limits";
 import type { CatalogType } from "@/types/registry";
 import type {
   AttributeName,
@@ -91,9 +91,6 @@ export interface SongCollection extends CatalogCollection<"songs"> {
   syllableLyrics: (id: string, options?: Scope) => Promise<string>;
 }
 
-const filterCaps: Record<string, Record<string, number> | undefined> =
-  filterLimits;
-
 const countExtends: Partial<Record<CatalogType, string>> = {
   playlists: "trackCount",
 };
@@ -169,23 +166,15 @@ export const createCatalog =
     ) => {
       const path = await context.catalogPath(scope, type);
       const documents = await Promise.all(
-        Object.entries(by).flatMap(([name, values]) => {
-          const size = filterCaps[type]?.[name] ?? values.length;
-          return Array.from(
-            { length: Math.ceil(values.length / size) },
-            (_, index) =>
+        Object.entries(by).flatMap(([name, values]) =>
+          chunk(values, capOf(filterLimits, type, name) ?? values.length).map(
+            (group) =>
               context.sendMap({
                 path,
-                query: {
-                  ...query(scope),
-                  [`filter[${name}]`]: values.slice(
-                    index * size,
-                    index * size + size
-                  ),
-                },
+                query: { ...query(scope), [`filter[${name}]`]: group },
               })
-          );
-        })
+          )
+        )
       );
       return Promise.all(
         documents.flatMap((document) =>

@@ -104,8 +104,9 @@ export interface Operations {
   "GET /v1/catalog/{storefront}/artists/{id}/view/{view}": {
     "storefront"?: string;
     "id": string;
-    "view": "appears-on-albums" | "featured-albums" | "featured-playlists" | "featured-release" | "full-albums" | "latest-release" | "live-albums" | "more-to-hear" | "more-to-see" | "playlists" | "radio-shows" | "similar-artists" | "singles" | "top-music-videos" | "top-songs";
+    "view": "appears-on-albums" | "compilation-albums" | "featured-albums" | "featured-playlists" | "featured-release" | "full-albums" | "latest-release" | "live-albums" | "more-to-hear" | "more-to-see" | "playlists" | "radio-shows" | "similar-artists" | "singles" | "top-music-videos" | "top-songs";
     "limit"?: number;
+    "offset"?: number;
     "with"?: readonly "attributes"[];
     "include[songs]"?: readonly ("albums" | "artists" | "composers")[];
     "include[albums]"?: readonly ("artists" | "composers" | "tracks")[];
@@ -141,6 +142,7 @@ export interface Operations {
     "extend[concerts]"?: readonly ("eventDataProviders" | "ticketDataProvider" | "tickets" | "url")[];
     "extend[playlists]"?: readonly string[];
     "limit[artists:top-songs]"?: number;
+    "views"?: readonly ("all-upcoming-concerts" | "appears-on-albums" | "compilation-albums" | "featured-albums" | "featured-playlists" | "featured-release" | "full-albums" | "latest-release" | "live-albums" | "more-to-hear" | "more-to-see" | "nearby-upcoming-concerts" | "playlists" | "radio-shows" | "similar-artists" | "singles" | "top-music-videos" | "top-songs")[];
     "geoHashLocation"?: string;
     "l"?: string;
     "platform"?: "web" | "iphone" | "ipad" | "desktop" | "appletv" | "watch";

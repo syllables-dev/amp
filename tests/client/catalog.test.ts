@@ -233,3 +233,36 @@ describe("catalog gets", () => {
     expect(() => JSON.stringify(album)).not.toThrow();
   });
 });
+
+describe("syllable lyrics", () => {
+  const lyricsReply = (attributes: Record<string, unknown>) => ({
+    body: { data: [{ attributes, id: "1", type: "syllable-lyrics" }] },
+  });
+
+  test("asking for languages extends the file and keeps their fallback order", async () => {
+    const api = fakeApi(() =>
+      lyricsReply({ playParams: {}, ttmlLocalizations: "<tt>localized</tt>" })
+    );
+    const ttml = await api.client.songs.syllableLyrics("1", {
+      lyrics: ["zh-Hant", "en"],
+      script: ["en-Latn"],
+    });
+    expect(ttml).toBe("<tt>localized</tt>");
+    const [url] = api.urls;
+    expect(url?.pathname).toBe("/v1/catalog/hk/songs/1/syllable-lyrics");
+    expect(url?.searchParams.get("extend")).toBe("ttmlLocalizations");
+    expect(url?.searchParams.get("l[lyrics]")).toBe("zh-Hant,en");
+    expect(url?.searchParams.get("l[script]")).toBe("en-Latn");
+  });
+
+  test("a plain read sends no localization settings", async () => {
+    const api = fakeApi(() =>
+      lyricsReply({ playParams: {}, ttml: "<tt>plain</tt>" })
+    );
+    expect(await api.client.songs.syllableLyrics("1")).toBe("<tt>plain</tt>");
+    const [url] = api.urls;
+    expect(url?.searchParams.has("extend")).toBe(false);
+    expect(url?.searchParams.has("l[lyrics]")).toBe(false);
+    expect(url?.searchParams.has("l[script]")).toBe(false);
+  });
+});

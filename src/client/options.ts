@@ -25,6 +25,11 @@ export interface Scope {
   storefront?: string;
 }
 
+export interface SyllableLyricsOptions extends Scope {
+  lyrics?: readonly string[];
+  script?: readonly string[];
+}
+
 export interface RecommendationOptions<E extends RecommendationExtend> {
   extend?: readonly E[];
   language?: string;

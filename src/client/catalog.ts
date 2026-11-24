@@ -4,6 +4,7 @@ import type {
   Located,
   PageOptions,
   Scope,
+  SyllableLyricsOptions,
   ViewArgs,
 } from "@/client/options";
 import { countExtend } from "@/internal/complete";
@@ -89,7 +90,10 @@ export interface CatalogCollection<T extends CatalogType> {
 export interface SongCollection extends CatalogCollection<"songs"> {
   credits: (id: string, options?: Scope) => Promise<CreditCategory[]>;
   lyrics: (id: string, options?: Scope) => Promise<string>;
-  syllableLyrics: (id: string, options?: Scope) => Promise<string>;
+  syllableLyrics: (
+    id: string,
+    options?: SyllableLyricsOptions
+  ) => Promise<string>;
 }
 
 export const createCatalog =
@@ -240,10 +244,15 @@ export const createCatalog =
   };
 
 export const createSongs = (context: Context): SongCollection => {
-  const lyricsAttributes = async (id: string, kind: string, scope: Scope) => {
+  const lyricsAttributes = async (
+    id: string,
+    kind: string,
+    scope: Scope,
+    localizations: Query = {}
+  ) => {
     const document = await context.send({
       path: await context.catalogPath(scope, "songs", id, kind),
-      query: { l: context.language(scope) },
+      query: { l: context.language(scope), ...localizations },
     });
     return document.data?.[0]?.attributes;
   };
@@ -258,9 +267,20 @@ export const createSongs = (context: Context): SongCollection => {
     },
     lyrics: async (id, scope = {}) =>
       String((await lyricsAttributes(id, "lyrics", scope))?.ttml ?? ""),
-    syllableLyrics: async (id, scope = {}) => {
-      const attributes = await lyricsAttributes(id, "syllable-lyrics", scope);
-      return String(attributes?.ttml ?? attributes?.ttmlLocalizations ?? "");
+    syllableLyrics: async (id, { lyrics, script, ...scope } = {}) => {
+      const attributes = await lyricsAttributes(
+        id,
+        "syllable-lyrics",
+        scope,
+        lyrics || script
+          ? {
+              extend: "ttmlLocalizations",
+              "l[lyrics]": lyrics?.join(","),
+              "l[script]": script?.join(","),
+            }
+          : {}
+      );
+      return String(attributes?.ttmlLocalizations ?? attributes?.ttml ?? "");
     },
   };
 };

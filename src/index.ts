@@ -22,6 +22,7 @@ export type {
   PageOptions,
   RecommendationOptions,
   Scope,
+  SyllableLyricsOptions,
 } from "@/client/options";
 export type { SearchResults } from "@/client/search";
 export { AmpError, type ApiError } from "@/errors";
